@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:if="${employee.id == null}">Создание сотрудника</title>
+    <title th:if="${employee.id != null}">Редактирование сотрудника</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 th:if="${employee.id == null}">Новый сотрудник</h2>
+            <h2 th:if="${employee.id != null}">Редактирование сотрудника</h2>
+
+            <form th:action="${employee.id == null} ? @{/employees/create} : @{/employees/edit/{id}(id=${employee.id})}"
+                  method="post">
+                <div class="mb-3">
+                    <label for="fullName" class="form-label">ФИО</label>
+                    <input type="text" class="form-control" id="fullName" name="fullName"
+                           th:value="${employee.fullName}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="profession" class="form-label">Профессия</label>
+                    <select class="form-select" id="profession" name="profession.id" required>
+                        <option value="">Выберите профессию</option>
+                        <option th:each="prof : ${professions}" th:value="${prof.id}" th:text="${prof.name}"
+                                th:selected="${employee.profession != null && employee.profession.id == prof.id}"></option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="department" class="form-label">Подразделение</label>
+                    <select class="form-select" id="department" name="department.id" required>
+                        <option value="">Выберите подразделение</option>
+                        <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"
+                                th:selected="${employee.department != null && employee.department.id == dept.id}"></option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="hireDate" class="form-label">Дата приёма</label>
+                    <input type="date" class="form-control" id="hireDate" name="hireDate"
+                           th:value="${employee.hireDate}" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a href="/employees" class="btn btn-secondary">Отмена</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

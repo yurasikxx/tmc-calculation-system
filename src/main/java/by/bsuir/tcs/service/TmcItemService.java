@@ -139,4 +139,19 @@ public class TmcItemService {
         TmcItem tmcItem = findById(id);
         tmcItemRepository.delete(tmcItem);
     }
+
+    @Transactional(readOnly = true)
+    public SizAttributes findSizAttributes(Long tmcId) {
+        return sizAttributesRepository.findById(tmcId).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public ToolAttributes findToolAttributes(Long tmcId) {
+        return toolAttributesRepository.findById(tmcId).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public EquipmentAttributes findEquipmentAttributes(Long tmcId) {
+        return equipmentAttributesRepository.findById(tmcId).orElse(null);
+    }
 }
