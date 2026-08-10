@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,24 +14,41 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item" sec:authorize="hasAnyRole('LABOR', 'ADMIN')">
                         <a class="nav-link" href="/departments">Подразделения</a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" sec:authorize="hasAnyRole('LABOR', 'ADMIN')">
                         <a class="nav-link" href="/professions">Профессии</a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" sec:authorize="hasAnyRole('LABOR', 'ADMIN', 'MTS')">
                         <a class="nav-link" href="/employees">Сотрудники</a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" sec:authorize="hasAnyRole('OT', 'STOREKEEPER', 'TECHNOLOG', 'ADMIN')">
                         <a class="nav-link" href="/tmc-items">ТМЦ</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/norms">Нормы выдачи</a>
+                    <li class="nav-item" sec:authorize="hasAnyRole('OT', 'STOREKEEPER', 'TECHNOLOG', 'ADMIN')">
+                        <a class="nav-link" href="/norms">Нормы</a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" sec:authorize="hasRole('MTS')">
                         <a class="nav-link" href="/calculations">Расчёт</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" href="/users">Пользователи</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                           data-bs-toggle="dropdown">
+                            <span th:text="${#authentication.name}">user</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text" th:text="'Роль: ' + ${#authentication.authorities}">Роль</span>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="/logout">Выйти</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>
