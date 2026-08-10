@@ -1,0 +1,176 @@
+:root {
+    --primary: #0d6efd;
+    --primary-dark: #0a58ca;
+    --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.2);
+    --border-radius: 16px;
+    --border-radius-sm: 10px;
+    --transition: 0.25s ease;
+}
+
+.bg-gradient-primary {
+    background: var(--primary-gradient);
+}
+
+.text-primary-custom {
+    color: var(--primary);
+}
+
+.shadow-card {
+    box-shadow: var(--shadow-md);
+}
+
+.shadow-card-lg {
+    box-shadow: var(--shadow-lg);
+}
+
+.rounded-custom {
+    border-radius: var(--border-radius);
+}
+
+.rounded-custom-sm {
+    border-radius: var(--border-radius-sm);
+}
+
+.transition {
+    transition: var(--transition);
+}
+
+.hero-section {
+    padding: 80px 0 60px;
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 0 0 30px 30px;
+    margin-bottom: 40px;
+}
+
+.hero-section .display-4 {
+    font-weight: 700;
+}
+
+.hero-section .lead {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--primary);
+}
+
+.feature-card {
+    border: none;
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.role-badge {
+    background-color: #f8f9fa;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.login-page {
+    background: var(--primary-gradient);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.login-card .icon {
+    font-size: 3rem;
+    color: var(--primary);
+}
+
+.login-card .brand {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.login-card .brand-sub {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.login-card .btn-primary {
+    padding: 12px;
+    font-weight: 600;
+}
+
+.login-card .form-control {
+    border-left: none;
+}
+
+.login-card .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.login-card .input-group-text {
+    background: white;
+    border-right: none;
+}
+
+.login-card .alert {
+    border-radius: var(--border-radius-sm);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.result-card .card-header {
+    background: var(--primary);
+    color: white;
+    border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+}
+
+.result-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        padding: 40px 0 30px;
+    }
+
+    .hero-section .display-4 {
+        font-size: 2rem;
+    }
+
+    .login-card {
+        padding: 30px 20px;
+    }
+}

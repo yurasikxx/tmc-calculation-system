@@ -1,25 +1,160 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ТМЦ-система</title>
+    <title>Система расчёта ТМЦ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
 
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="container mt-4">
-    <div class="jumbotron">
-        <h1>Добро пожаловать в систему расчёта ТМЦ</h1>
-        <p class="lead">Система для автоматизации расчёта потребности в товарно-материальных ценностях на основе
-            кадровых планов.</p>
-        <hr class="my-4">
-        <p>Используйте навигацию для работы со справочниками и расчётами.</p>
-        <a class="btn btn-primary btn-lg" href="/calculations" role="button">Перейти к расчёту</a>
+<section class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 mb-3">
+            <i class="bi bi-boxes"></i>
+            Система расчёта ТМЦ
+        </h1>
+        <p class="lead mb-4">
+            Автоматизация планирования потребности в товарно-материальных ценностях<br>
+            на основе изменений кадрового состава предприятия
+        </p>
+
+        <div sec:authorize="isAuthenticated()">
+            <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+                <span class="badge bg-light text-dark fs-6 px-4 py-2">
+                    <i class="bi bi-person-circle"></i>
+                    <span sec:authentication="name"></span>
+                </span>
+                <span class="badge bg-light text-dark fs-6 px-4 py-2" sec:authentication="authorities">
+                    Роль
+                </span>
+                <a href="/calculations" class="btn btn-light btn-lg">
+                    <i class="bi bi-calculator"></i> Перейти к расчёту
+                </a>
+                <a href="/logout" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                </a>
+            </div>
+        </div>
+        <div sec:authorize="isAnonymous()">
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="/login" class="btn btn-light btn-lg px-5">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти
+                </a>
+                <span class="text-light-emphasis d-flex align-items-center">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Для доступа требуется авторизация
+                </span>
+            </div>
+        </div>
     </div>
-</div>
+</section>
+
+<section class="container mb-5">
+    <div class="row align-items-center">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <h2 class="fw-bold">Что это за система?</h2>
+            <p class="lead text-muted">
+                Инструмент для автоматизации расчёта потребности в ТМЦ
+                при планируемых изменениях в штатном расписании.
+            </p>
+            <p>
+                Система позволяет вести справочники ТМЦ, профессий, подразделений
+                и норм выдачи, загружать кадровый план и мгновенно получать
+                сформированную заявку на закупку.
+            </p>
+            <div class="mt-3 d-flex gap-2 flex-wrap">
+                <span class="role-badge"><i class="bi bi-check-circle-fill text-success"></i> СИЗ</span>
+                <span class="role-badge"><i class="bi bi-check-circle-fill text-success"></i> Инструмент</span>
+                <span class="role-badge"><i class="bi bi-check-circle-fill text-success"></i> Оснастка</span>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="bg-light p-4 rounded-4">
+                <h5 class="fw-bold"><i class="bi bi-graph-up-arrow text-primary"></i> Ключевой сценарий</h5>
+                <ol class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-1-circle-fill text-primary me-2"></i>Загружается кадровый план
+                        (JSON)
+                    </li>
+                    <li class="mb-2"><i class="bi bi-2-circle-fill text-primary me-2"></i>Система применяет нормы выдачи
+                    </li>
+                    <li class="mb-2"><i class="bi bi-3-circle-fill text-primary me-2"></i>Формируется сводная заявка на
+                        закупку
+                    </li>
+                    <li><i class="bi bi-4-circle-fill text-primary me-2"></i>Экспорт в Excel или PDF</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container mb-5">
+    <h2 class="text-center fw-bold mb-4">Возможности системы</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card feature-card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon mb-3"><i class="bi bi-people"></i></div>
+                    <h5 class="card-title fw-bold">Управление справочниками</h5>
+                    <p class="card-text text-muted">ТМЦ, профессии, подразделения и нормы выдачи — всё в одном
+                        месте.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon mb-3"><i class="bi bi-upload"></i></div>
+                    <h5 class="card-title fw-bold">Загрузка кадрового плана</h5>
+                    <p class="card-text text-muted">Импорт данных из внешних систем в формате JSON.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon mb-3"><i class="bi bi-calculator"></i></div>
+                    <h5 class="card-title fw-bold">Автоматический расчёт</h5>
+                    <p class="card-text text-muted">Мгновенный расчёт потребности в ТМЦ с учётом норм и кадровых
+                        изменений.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon mb-3"><i class="bi bi-table"></i></div>
+                    <h5 class="card-title fw-bold">Сводная таблица</h5>
+                    <p class="card-text text-muted">Группировка по типам ТМЦ и подразделениям для удобного анализа.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon mb-3"><i class="bi bi-file-earmark-excel"></i></div>
+                    <h5 class="card-title fw-bold">Экспорт отчётов</h5>
+                    <p class="card-text text-muted">Выгрузка результатов в Excel или PDF для передачи в отдел
+                        закупок.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon mb-3"><i class="bi bi-shield-lock"></i></div>
+                    <h5 class="card-title fw-bold">Ролевой доступ</h5>
+                    <p class="card-text text-muted">Разграничение прав между специалистами разных подразделений.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
