@@ -27,7 +27,7 @@ public class User {
     private String passwordHash;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", unique = true)
+    @JoinColumn(name = "employee_id", referencedColumnName = "id", unique = true)
     private Employee employee;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,5 +43,20 @@ public class User {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+    }
+
+    public String getEmployeeFullNameWithInitials() {
+        if (employee == null) {
+            return username;
+        }
+        String fullName = employee.getFullName();
+        String[] parts = fullName.split(" ");
+        if (parts.length >= 3) {
+            String lastName = parts[0];
+            String firstNameInitial = parts[1].charAt(0) + ".";
+            String patronymicInitial = parts[2].charAt(0) + ".";
+            return lastName + " " + firstNameInitial + patronymicInitial;
+        }
+        return fullName;
     }
 }

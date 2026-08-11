@@ -13,7 +13,117 @@
 
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<section class="hero-section text-center">
+<div sec:authorize="isAuthenticated()" class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-building"></i> Подразделения</h5>
+                    <h3 th:text="${stats.departmentsCount}">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-person-workspace"></i> Профессии</h5>
+                    <h3 th:text="${stats.professionsCount}">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-boxes"></i> ТМЦ</h5>
+                    <h3 th:text="${stats.tmcItemsCount}">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-list-check"></i> Нормы</h5>
+                    <h3 th:text="${stats.normsCount}">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <i class="bi bi-compass"></i> Быстрый доступ
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="/departments" class="btn btn-outline-primary">
+                            <i class="bi bi-building"></i> Подразделения
+                        </a>
+                        <a href="/professions" class="btn btn-outline-success">
+                            <i class="bi bi-person-workspace"></i> Профессии
+                        </a>
+                        <a href="/employees" class="btn btn-outline-info">
+                            <i class="bi bi-people"></i> Сотрудники
+                        </a>
+                        <a href="/tmc-items" class="btn btn-outline-primary">
+                            <i class="bi bi-boxes"></i> ТМЦ
+                        </a>
+                        <a href="/norms" class="btn btn-outline-warning">
+                            <i class="bi bi-list-check"></i> Нормы
+                        </a>
+                        <a href="/calculations" class="btn btn-outline-danger">
+                            <i class="bi bi-calculator"></i> Расчёт
+                        </a>
+                        <a sec:authorize="hasRole('ADMIN')" href="/users" class="btn btn-outline-secondary">
+                            <i class="bi bi-people-fill"></i> Пользователи
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <i class="bi bi-clock-history"></i> Последние расчёты
+                </div>
+                <div class="card-body">
+                    <div th:if="${recentCalculations != null and !recentCalculations.isEmpty()}">
+                        <table class="table table-sm">
+                            <thead>
+                            <tr>
+                                <th>Период</th>
+                                <th>ТМЦ</th>
+                                <th>Количество</th>
+                                <th>Дата расчёта</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="calc : ${recentCalculations}">
+                                <td th:text="${calc.period}">06/2026</td>
+                                <td th:text="${calc.tmcName}">Штангенциркуль</td>
+                                <td th:text="${calc.requiredQuantity}">5</td>
+                                <td th:text="${#dates.format(calc.calculationDate, 'dd.MM.yyyy HH:mm')}">10.08.2026
+                                    14:30
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${recentCalculations == null or recentCalculations.isEmpty()}">
+                        <p class="text-muted mb-0"><i class="bi bi-info-circle"></i> Расчётов пока нет. <a
+                                href="/calculations">Сделать первый расчёт</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div sec:authorize="isAnonymous()" class="hero-section text-center">
     <div class="container">
         <h1 class="display-4 mb-3">
             <i class="bi bi-boxes"></i>
@@ -23,138 +133,11 @@
             Автоматизация планирования потребности в товарно-материальных ценностях<br>
             на основе изменений кадрового состава предприятия
         </p>
-
-        <div sec:authorize="isAuthenticated()">
-            <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
-                <span class="badge bg-light text-dark fs-6 px-4 py-2">
-                    <i class="bi bi-person-circle"></i>
-                    <span sec:authentication="name"></span>
-                </span>
-                <span class="badge bg-light text-dark fs-6 px-4 py-2" sec:authentication="authorities">
-                    Роль
-                </span>
-                <a href="/calculations" class="btn btn-light btn-lg">
-                    <i class="bi bi-calculator"></i> Перейти к расчёту
-                </a>
-                <a href="/logout" class="btn btn-outline-light btn-lg">
-                    <i class="bi bi-box-arrow-right"></i> Выйти
-                </a>
-            </div>
-        </div>
-        <div sec:authorize="isAnonymous()">
-            <div class="d-flex justify-content-center gap-3 flex-wrap">
-                <a href="/login" class="btn btn-light btn-lg px-5">
-                    <i class="bi bi-box-arrow-in-right"></i> Войти
-                </a>
-                <span class="text-light-emphasis d-flex align-items-center">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Для доступа требуется авторизация
-                </span>
-            </div>
-        </div>
+        <a href="/login" class="btn btn-light btn-lg px-5">
+            <i class="bi bi-box-arrow-in-right"></i> Войти
+        </a>
     </div>
-</section>
-
-<section class="container mb-5">
-    <div class="row align-items-center">
-        <div class="col-lg-6 mb-4 mb-lg-0">
-            <h2 class="fw-bold">Что это за система?</h2>
-            <p class="lead text-muted">
-                Инструмент для автоматизации расчёта потребности в ТМЦ
-                при планируемых изменениях в штатном расписании.
-            </p>
-            <p>
-                Система позволяет вести справочники ТМЦ, профессий, подразделений
-                и норм выдачи, загружать кадровый план и мгновенно получать
-                сформированную заявку на закупку.
-            </p>
-            <div class="mt-3 d-flex gap-2 flex-wrap">
-                <span class="role-badge"><i class="bi bi-check-circle-fill text-success"></i> СИЗ</span>
-                <span class="role-badge"><i class="bi bi-check-circle-fill text-success"></i> Инструмент</span>
-                <span class="role-badge"><i class="bi bi-check-circle-fill text-success"></i> Оснастка</span>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="bg-light p-4 rounded-4">
-                <h5 class="fw-bold"><i class="bi bi-graph-up-arrow text-primary"></i> Ключевой сценарий</h5>
-                <ol class="list-unstyled">
-                    <li class="mb-2"><i class="bi bi-1-circle-fill text-primary me-2"></i>Загружается кадровый план
-                        (JSON)
-                    </li>
-                    <li class="mb-2"><i class="bi bi-2-circle-fill text-primary me-2"></i>Система применяет нормы выдачи
-                    </li>
-                    <li class="mb-2"><i class="bi bi-3-circle-fill text-primary me-2"></i>Формируется сводная заявка на
-                        закупку
-                    </li>
-                    <li><i class="bi bi-4-circle-fill text-primary me-2"></i>Экспорт в Excel или PDF</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="container mb-5">
-    <h2 class="text-center fw-bold mb-4">Возможности системы</h2>
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card feature-card shadow-sm">
-                <div class="card-body text-center">
-                    <div class="feature-icon mb-3"><i class="bi bi-people"></i></div>
-                    <h5 class="card-title fw-bold">Управление справочниками</h5>
-                    <p class="card-text text-muted">ТМЦ, профессии, подразделения и нормы выдачи — всё в одном
-                        месте.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card feature-card shadow-sm">
-                <div class="card-body text-center">
-                    <div class="feature-icon mb-3"><i class="bi bi-upload"></i></div>
-                    <h5 class="card-title fw-bold">Загрузка кадрового плана</h5>
-                    <p class="card-text text-muted">Импорт данных из внешних систем в формате JSON.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card feature-card shadow-sm">
-                <div class="card-body text-center">
-                    <div class="feature-icon mb-3"><i class="bi bi-calculator"></i></div>
-                    <h5 class="card-title fw-bold">Автоматический расчёт</h5>
-                    <p class="card-text text-muted">Мгновенный расчёт потребности в ТМЦ с учётом норм и кадровых
-                        изменений.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card feature-card shadow-sm">
-                <div class="card-body text-center">
-                    <div class="feature-icon mb-3"><i class="bi bi-table"></i></div>
-                    <h5 class="card-title fw-bold">Сводная таблица</h5>
-                    <p class="card-text text-muted">Группировка по типам ТМЦ и подразделениям для удобного анализа.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card feature-card shadow-sm">
-                <div class="card-body text-center">
-                    <div class="feature-icon mb-3"><i class="bi bi-file-earmark-excel"></i></div>
-                    <h5 class="card-title fw-bold">Экспорт отчётов</h5>
-                    <p class="card-text text-muted">Выгрузка результатов в Excel или PDF для передачи в отдел
-                        закупок.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card feature-card shadow-sm">
-                <div class="card-body text-center">
-                    <div class="feature-icon mb-3"><i class="bi bi-shield-lock"></i></div>
-                    <h5 class="card-title fw-bold">Ролевой доступ</h5>
-                    <p class="card-text text-muted">Разграничение прав между специалистами разных подразделений.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
