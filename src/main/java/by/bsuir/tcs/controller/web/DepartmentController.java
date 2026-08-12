@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/departments")
@@ -27,8 +28,13 @@ public class DepartmentController {
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute Department department) {
-        departmentService.create(department);
+    public String create(@ModelAttribute Department department, RedirectAttributes redirectAttributes) {
+        try {
+            departmentService.create(department);
+            redirectAttributes.addFlashAttribute("success", "Подразделение успешно создано");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при создании подразделения: " + e.getMessage());
+        }
         return "redirect:/departments";
     }
 
@@ -39,14 +45,24 @@ public class DepartmentController {
     }
 
     @PostMapping("/edit/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute Department department) {
-        departmentService.update(id, department);
+    public String update(@PathVariable Long id, @ModelAttribute Department department, RedirectAttributes redirectAttributes) {
+        try {
+            departmentService.update(id, department);
+            redirectAttributes.addFlashAttribute("success", "Подразделение успешно обновлено");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при обновлении подразделения: " + e.getMessage());
+        }
         return "redirect:/departments";
     }
 
     @PostMapping("/delete/{id}")
-    public String delete(@PathVariable Long id) {
-        departmentService.delete(id);
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            departmentService.delete(id);
+            redirectAttributes.addFlashAttribute("success", "Подразделение успешно удалено");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении подразделения: " + e.getMessage());
+        }
         return "redirect:/departments";
     }
 }

@@ -15,20 +15,19 @@ import lombok.NoArgsConstructor;
 public class SizAttributes {
 
     @Id
-    @Column(name = "tmc_id")
     private Long tmcId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @MapsId
     @JoinColumn(name = "tmc_id")
     private TmcItem tmcItem;
 
-    @Column(name = "size", length = 20)
+    @Column(name = "size")
     private String size;
 
     @Column(name = "wear_period_months")
     private Integer wearPeriodMonths;
 
-    @Column(name = "protection_class", length = 50)
+    @Column(name = "protection_class")
     private String protectionClass;
 }

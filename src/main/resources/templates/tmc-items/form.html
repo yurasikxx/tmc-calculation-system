@@ -6,6 +6,8 @@
     <title th:if="${tmcItem.id == null}">Создание ТМЦ</title>
     <title th:if="${tmcItem.id != null}">Редактирование ТМЦ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
 
@@ -31,13 +33,11 @@
                     <input type="text" class="form-control" id="name" name="name" th:value="${tmcItem.name}" required>
                 </div>
 
+                <input type="hidden" name="type.id" th:value="${tmcItem.type.id}">
                 <div class="mb-3">
-                    <label for="typeId" class="form-label">Тип ТМЦ</label>
-                    <select class="form-select" id="typeId" name="type.id" required onchange="toggleAttributes()">
-                        <option value="">Выберите тип</option>
-                        <option th:each="type : ${tmcTypes}" th:value="${type.id}" th:text="${type.name}"
-                                th:selected="${tmcItem.type != null && tmcItem.type.id == type.id}"></option>
-                    </select>
+                    <label class="form-label">Тип ТМЦ</label>
+                    <input type="text" class="form-control"
+                           th:value="${@tmcTypeService.getRussianName(tmcItem.type.name)}" disabled>
                 </div>
 
                 <div class="mb-3">
@@ -53,70 +53,63 @@
                     <div class="form-text">Оставьте пустым, если срок не ограничен</div>
                 </div>
 
-                <div id="sizAttributes"
-                     style="display: none; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                <div th:if="${attributeType == 'SIZ'}"
+                     style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
                     <h5>Характеристики СИЗ</h5>
                     <div class="mb-3">
                         <label for="size" class="form-label">Размер</label>
-                        <input type="text" class="form-control" id="size" name="size"
-                               th:value="${attributeType == 'SIZ' ? attributes.size : ''}"
+                        <input type="text" class="form-control" id="size" name="size" th:value="${attributes.size}"
                                placeholder="Например: 42, 100, L">
                     </div>
                     <div class="mb-3">
                         <label for="wearPeriodMonths" class="form-label">Срок носки (месяцев)</label>
                         <input type="number" class="form-control" id="wearPeriodMonths" name="wearPeriodMonths"
-                               th:value="${attributeType == 'SIZ' ? attributes.wearPeriodMonths : ''}" min="1">
+                               th:value="${attributes.wearPeriodMonths}" min="1">
                     </div>
                     <div class="mb-3">
                         <label for="protectionClass" class="form-label">Класс защиты</label>
                         <input type="text" class="form-control" id="protectionClass" name="protectionClass"
-                               th:value="${attributeType == 'SIZ' ? attributes.protectionClass : ''}"
-                               placeholder="Например: МУН200, 2 класс">
+                               th:value="${attributes.protectionClass}" placeholder="Например: МУН200, 2 класс">
                     </div>
                 </div>
 
-                <div id="toolAttributes"
-                     style="display: none; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                <div th:if="${attributeType == 'TOOL'}"
+                     style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
                     <h5>Характеристики инструмента</h5>
                     <div class="mb-3">
                         <label for="material" class="form-label">Материал</label>
                         <input type="text" class="form-control" id="material" name="material"
-                               th:value="${attributeType == 'TOOL' ? attributes.material : ''}"
-                               placeholder="Например: Сталь 40Х, Чугун">
+                               th:value="${attributes.material}" placeholder="Например: Сталь 40Х, Чугун">
                     </div>
                     <div class="mb-3">
                         <label for="gostNumber" class="form-label">ГОСТ</label>
                         <input type="text" class="form-control" id="gostNumber" name="gostNumber"
-                               th:value="${attributeType == 'TOOL' ? attributes.gostNumber : ''}"
-                               placeholder="Например: ГОСТ 166-89">
+                               th:value="${attributes.gostNumber}" placeholder="Например: ГОСТ 166-89">
                     </div>
                     <div class="mb-3">
                         <label for="measurementRange" class="form-label">Диапазон измерения</label>
                         <input type="text" class="form-control" id="measurementRange" name="measurementRange"
-                               th:value="${attributeType == 'TOOL' ? attributes.measurementRange : ''}"
-                               placeholder="Например: 0-150">
+                               th:value="${attributes.measurementRange}" placeholder="Например: 0-150">
                     </div>
                 </div>
 
-                <div id="equipmentAttributes"
-                     style="display: none; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                <div th:if="${attributeType == 'EQUIPMENT'}"
+                     style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
                     <h5>Характеристики оснастки</h5>
                     <div class="mb-3">
                         <label for="drawingNumber" class="form-label">Номер чертежа</label>
                         <input type="text" class="form-control" id="drawingNumber" name="drawingNumber"
-                               th:value="${attributeType == 'EQUIPMENT' ? attributes.drawingNumber : ''}"
-                               placeholder="Например: 1234-5678">
+                               th:value="${attributes.drawingNumber}" placeholder="Например: 1234-5678">
                     </div>
                     <div class="mb-3">
                         <label for="maxCycles" class="form-label">Ресурс (циклов)</label>
                         <input type="number" class="form-control" id="maxCycles" name="maxCycles"
-                               th:value="${attributeType == 'EQUIPMENT' ? attributes.maxCycles : ''}" min="1">
+                               th:value="${attributes.maxCycles}" min="1">
                     </div>
                     <div class="mb-3">
                         <label for="machineModel" class="form-label">Модель станка</label>
                         <input type="text" class="form-control" id="machineModel" name="machineModel"
-                               th:value="${attributeType == 'EQUIPMENT' ? attributes.machineModel : ''}"
-                               placeholder="Например: КД-2320">
+                               th:value="${attributes.machineModel}" placeholder="Например: КД-2320">
                     </div>
                 </div>
 
@@ -127,34 +120,5 @@
     </div>
 </div>
 
-<script>
-    function toggleAttributes() {
-        const typeId = document.getElementById('typeId').value;
-        const sizBlock = document.getElementById('sizAttributes');
-        const toolBlock = document.getElementById('toolAttributes');
-        const equipmentBlock = document.getElementById('equipmentAttributes');
-
-        sizBlock.style.display = 'none';
-        toolBlock.style.display = 'none';
-        equipmentBlock.style.display = 'none';
-
-        if (typeId) {
-            const typeName = document.getElementById('typeId').selectedOptions[0].text;
-            if (typeName === 'SIZ') {
-                sizBlock.style.display = 'block';
-            } else if (typeName === 'TOOL') {
-                toolBlock.style.display = 'block';
-            } else if (typeName === 'EQUIPMENT') {
-                equipmentBlock.style.display = 'block';
-            }
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        toggleAttributes();
-    });
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -5,6 +5,9 @@ import by.bsuir.tcs.entity.Profession;
 import by.bsuir.tcs.entity.TmcItem;
 import by.bsuir.tcs.repository.NormRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,18 @@ public class NormService {
     @Transactional(readOnly = true)
     public List<Norm> findAll() {
         return normRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Norm> findAllForCurrentUser() {
+        String role = getCurrentUserRole();
+        return switch (role) {
+            case "ROLE_OT" -> normRepository.findByTmcTypeName("SIZ");
+            case "ROLE_TECHNOLOG" -> normRepository.findByTmcTypeName("EQUIPMENT");
+            case "ROLE_STOREKEEPER" -> normRepository.findByTmcTypeName("TOOL");
+            case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> normRepository.findAll();
+            default -> List.of();
+        };
     }
 
     @Transactional(readOnly = true)
@@ -52,6 +67,10 @@ public class NormService {
         TmcItem tmcItem = tmcItemService.findById(norm.getTmcItem().getId());
         Profession profession = professionService.findById(norm.getProfession().getId());
 
+        if (!tmcItemService.hasAccessToTmcItem(tmcItem)) {
+            throw new RuntimeException("You don't have permission to create norms for this type of TMC");
+        }
+
         if (normRepository.existsByTmcItemIdAndProfessionId(tmcItem.getId(), profession.getId())) {
             throw new RuntimeException("Norm already exists for this TmcItem and Profession");
         }
@@ -66,6 +85,10 @@ public class NormService {
     public Norm update(Long id, Norm updatedNorm) {
         Norm existing = findById(id);
 
+        if (!tmcItemService.hasAccessToTmcItem(existing.getTmcItem())) {
+            throw new RuntimeException("You don't have permission to update norms for this type of TMC");
+        }
+
         if (updatedNorm.getQuantity() != null && updatedNorm.getQuantity() > 0) {
             existing.setQuantity(updatedNorm.getQuantity());
         }
@@ -76,6 +99,9 @@ public class NormService {
 
         if (updatedNorm.getTmcItem() != null && updatedNorm.getTmcItem().getId() != null) {
             TmcItem tmcItem = tmcItemService.findById(updatedNorm.getTmcItem().getId());
+            if (!tmcItemService.hasAccessToTmcItem(tmcItem)) {
+                throw new RuntimeException("You don't have permission to use this TMC item");
+            }
             existing.setTmcItem(tmcItem);
         }
 
@@ -90,6 +116,22 @@ public class NormService {
     @Transactional
     public void delete(Long id) {
         Norm norm = findById(id);
+
+        if (!tmcItemService.hasAccessToTmcItem(norm.getTmcItem())) {
+            throw new RuntimeException("You don't have permission to delete norms for this type of TMC");
+        }
+
         normRepository.delete(norm);
+    }
+
+    private String getCurrentUserRole() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
+            return "ROLE_ANONYMOUS";
+        }
+        return auth.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse("ROLE_ANONYMOUS");
     }
 }

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/employees")
@@ -33,8 +34,13 @@ public class EmployeeController {
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute Employee employee) {
-        employeeService.create(employee);
+    public String create(@ModelAttribute Employee employee, RedirectAttributes redirectAttributes) {
+        try {
+            employeeService.create(employee);
+            redirectAttributes.addFlashAttribute("success", "Сотрудник успешно создан");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при создании сотрудника: " + e.getMessage());
+        }
         return "redirect:/employees";
     }
 
@@ -47,14 +53,24 @@ public class EmployeeController {
     }
 
     @PostMapping("/edit/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute Employee employee) {
-        employeeService.update(id, employee);
+    public String update(@PathVariable Long id, @ModelAttribute Employee employee, RedirectAttributes redirectAttributes) {
+        try {
+            employeeService.update(id, employee);
+            redirectAttributes.addFlashAttribute("success", "Сотрудник успешно обновлён");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при обновлении сотрудника: " + e.getMessage());
+        }
         return "redirect:/employees";
     }
 
     @PostMapping("/delete/{id}")
-    public String delete(@PathVariable Long id) {
-        employeeService.delete(id);
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            employeeService.delete(id);
+            redirectAttributes.addFlashAttribute("success", "Сотрудник успешно удалён");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении сотрудника: " + e.getMessage());
+        }
         return "redirect:/employees";
     }
 }

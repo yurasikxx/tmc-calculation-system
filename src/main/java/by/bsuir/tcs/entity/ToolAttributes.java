@@ -15,20 +15,19 @@ import lombok.NoArgsConstructor;
 public class ToolAttributes {
 
     @Id
-    @Column(name = "tmc_id")
     private Long tmcId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @MapsId
     @JoinColumn(name = "tmc_id")
     private TmcItem tmcItem;
 
-    @Column(name = "material", length = 100)
+    @Column(name = "material")
     private String material;
 
-    @Column(name = "gost_number", length = 50)
+    @Column(name = "gost_number")
     private String gostNumber;
 
-    @Column(name = "measurement_range", length = 50)
+    @Column(name = "measurement_range")
     private String measurementRange;
 }

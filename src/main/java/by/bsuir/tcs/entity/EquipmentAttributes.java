@@ -15,20 +15,19 @@ import lombok.NoArgsConstructor;
 public class EquipmentAttributes {
 
     @Id
-    @Column(name = "tmc_id")
     private Long tmcId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @MapsId
     @JoinColumn(name = "tmc_id")
     private TmcItem tmcItem;
 
-    @Column(name = "drawing_number", length = 50)
+    @Column(name = "drawing_number")
     private String drawingNumber;
 
     @Column(name = "max_cycles")
     private Integer maxCycles;
 
-    @Column(name = "machine_model", length = 100)
+    @Column(name = "machine_model")
     private String machineModel;
 }
