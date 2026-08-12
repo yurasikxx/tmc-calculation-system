@@ -106,9 +106,7 @@
                                 <td th:text="${calc.period}">06/2026</td>
                                 <td th:text="${calc.tmcName}">Штангенциркуль</td>
                                 <td th:text="${calc.requiredQuantity}">5</td>
-                                <td th:text="${#dates.format(calc.calculationDate, 'dd.MM.yyyy HH:mm')}">10.08.2026
-                                    14:30
-                                </td>
+                                <td th:text="${calc.formattedDate}">10.08.2026 14:30</td>
                             </tr>
                             </tbody>
                         </table>

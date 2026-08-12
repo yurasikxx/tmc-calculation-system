@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -33,13 +34,13 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public List<RecentCalculationDto> getRecentCalculations() {
-        // Берём последние 5 расчётов (группируем по уникальным периодам)
         return calculationResultRepository.findAll().stream()
                 .map(result -> RecentCalculationDto.builder()
                         .period(result.getPeriodMonth() + "/" + result.getPeriodYear())
                         .tmcName(result.getTmcItem().getName())
                         .requiredQuantity(result.getRequiredQuantity())
-                        .calculationDate(result.getCalculationDate())
+                        .formattedDate(result.getCalculationDate()
+                                .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))
                         .build())
                 .limit(5)
                 .collect(Collectors.toList());

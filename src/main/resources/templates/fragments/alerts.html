@@ -31,34 +31,5 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const alerts = document.querySelectorAll('.alert-flash');
-
-        if (alerts.length === 0) return;
-
-        alerts.forEach((alert) => {
-            setTimeout(() => {
-                alert.style.transition = 'opacity 0.5s ease';
-                alert.style.opacity = '0';
-                setTimeout(() => {
-                    alert.remove();
-                }, 500);
-            }, 5000);
-
-            const closeBtn = alert.querySelector('.btn-close');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    alert.style.transition = 'opacity 0.3s ease';
-                    alert.style.opacity = '0';
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 400);
-                });
-            }
-        });
-    });
-</script>
 </body>
 </html>

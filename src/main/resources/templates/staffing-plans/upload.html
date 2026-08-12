@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузка кадрового плана</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-upload me-2"></i>Загрузка кадрового плана</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Загрузите JSON-файл с кадровым планом. Формат:
+                    </p>
+                    <pre class="bg-light p-3 rounded" style="font-size: 0.8rem;">
+                        [
+                          {
+                            "fullName": "Иванов Иван Иванович",
+                            "professionName": "Токарь 5 разряда",
+                            "departmentName": "Цех №3",
+                            "actionType": "HIRE",
+                            "effectiveDate": "2026-06-01"
+                          }
+                        ]
+                    </pre>
+
+                    <form th:action="@{/staffing-plans/upload}" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Выберите JSON-файл</label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".json" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cloud-upload"></i> Загрузить
+                        </button>
+                        <a href="/calculations" class="btn btn-secondary">
+                            <i class="bi bi-arrow-right"></i> Перейти к расчёту
+                        </a>
+                    </form>
+
+                    <hr class="mt-4">
+
+                    <p class="mb-0">
+                        <a href="/staffing-plans/list" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-list"></i> Просмотр загруженных планов
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,3 +1,10 @@
+CREATE TABLE IF NOT EXISTS units (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(10) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS departments (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -31,7 +38,7 @@ CREATE TABLE IF NOT EXISTS tmc_items (
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(200) NOT NULL,
     type_id INTEGER NOT NULL REFERENCES tmc_types (id) ON DELETE RESTRICT,
-    unit VARCHAR(20) NOT NULL,
+    unit_id INTEGER NOT NULL REFERENCES units (id) ON DELETE RESTRICT,
     service_life_months INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -88,7 +95,8 @@ CREATE TABLE IF NOT EXISTS calculation_results (
 
 CREATE TABLE IF NOT EXISTS user_roles (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -104,6 +112,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_employees_profession ON employees (profession_id);
 CREATE INDEX IF NOT EXISTS idx_employees_department ON employees (department_id);
 CREATE INDEX IF NOT EXISTS idx_tmc_items_type ON tmc_items (type_id);
+CREATE INDEX IF NOT EXISTS idx_tmc_items_unit ON tmc_items (unit_id);
 CREATE INDEX IF NOT EXISTS idx_norms_tmc ON norms (tmc_id);
 CREATE INDEX IF NOT EXISTS idx_norms_profession ON norms (profession_id);
 CREATE INDEX IF NOT EXISTS idx_staffing_plans_employee ON staffing_plans (employee_id);
