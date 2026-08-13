@@ -9,33 +9,22 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tmc_items")
+@Table(name = "units")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TmcItem {
+public class Unit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "code", nullable = false, unique = true, length = 50)
+    @Column(name = "code", nullable = false, unique = true, length = 10)
     private String code;
 
-    @Column(name = "name", nullable = false, length = 200)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    private TmcType type;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "unit_id", nullable = false)
-    private Unit unit;
-
-    @Column(name = "service_life_months")
-    private Integer serviceLifeMonths;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

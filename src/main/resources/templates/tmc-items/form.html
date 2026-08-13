@@ -42,8 +42,10 @@
 
                 <div class="mb-3">
                     <label for="unit" class="form-label">Единица измерения</label>
-                    <input type="text" class="form-control" id="unit" name="unit" th:value="${tmcItem.unit}" required>
-                    <div class="form-text">Например: шт, пара, компл</div>
+                    <select class="form-select" id="unit" name="unit.id" required>
+                        <option th:each="u : ${units}" th:value="${u.id}" th:text="${u.code + ' - ' + u.name}"
+                                th:selected="${tmcItem.unit != null && tmcItem.unit.id == u.id}"></option>
+                    </select>
                 </div>
 
                 <div class="mb-3">

@@ -1,15 +1,7 @@
 package by.bsuir.tcs.service;
 
-import by.bsuir.tcs.entity.EquipmentAttributes;
-import by.bsuir.tcs.entity.SizAttributes;
-import by.bsuir.tcs.entity.TmcItem;
-import by.bsuir.tcs.entity.TmcType;
-import by.bsuir.tcs.entity.ToolAttributes;
-import by.bsuir.tcs.repository.EquipmentAttributesRepository;
-import by.bsuir.tcs.repository.SizAttributesRepository;
-import by.bsuir.tcs.repository.TmcItemRepository;
-import by.bsuir.tcs.repository.TmcTypeRepository;
-import by.bsuir.tcs.repository.ToolAttributesRepository;
+import by.bsuir.tcs.entity.*;
+import by.bsuir.tcs.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,25 +17,31 @@ public class TmcItemService {
 
     private final TmcItemRepository tmcItemRepository;
     private final TmcTypeRepository tmcTypeRepository;
+    private final UnitService unitService;
     private final SizAttributesRepository sizAttributesRepository;
     private final ToolAttributesRepository toolAttributesRepository;
     private final EquipmentAttributesRepository equipmentAttributesRepository;
 
     @Transactional(readOnly = true)
     public List<TmcItem> findAll() {
-        return tmcItemRepository.findAll();
+        return tmcItemRepository.findAllByOrderByIdDesc();
     }
 
     @Transactional(readOnly = true)
     public List<TmcItem> findAllForCurrentUser() {
         String role = getCurrentUserRole();
         return switch (role) {
-            case "ROLE_OT" -> tmcItemRepository.findByTypeName("SIZ");
-            case "ROLE_TECHNOLOG" -> tmcItemRepository.findByTypeName("EQUIPMENT");
-            case "ROLE_STOREKEEPER" -> tmcItemRepository.findByTypeName("TOOL");
-            case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> tmcItemRepository.findAll();
+            case "ROLE_OT" -> tmcItemRepository.findByTypeNameOrderByIdDesc("SIZ");
+            case "ROLE_TECHNOLOG" -> tmcItemRepository.findByTypeNameOrderByIdDesc("EQUIPMENT");
+            case "ROLE_STOREKEEPER" -> tmcItemRepository.findByTypeNameOrderByIdDesc("TOOL");
+            case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> tmcItemRepository.findAllByOrderByIdDesc();
             default -> List.of();
         };
+    }
+
+    @Transactional(readOnly = true)
+    public List<TmcItem> findByTypeName(String typeName) {
+        return tmcItemRepository.findByTypeNameOrderByIdDesc(typeName);
     }
 
     @Transactional(readOnly = true)
@@ -65,25 +63,28 @@ public class TmcItemService {
         TmcType type = tmcTypeRepository.findById(tmcItem.getType().getId())
                 .orElseThrow(() -> new RuntimeException("TmcType not found"));
 
+        Unit unit = unitService.findById(tmcItem.getUnit().getId());
+
         tmcItem.setType(type);
+        tmcItem.setUnit(unit);
 
         TmcItem saved = tmcItemRepository.save(tmcItem);
 
         if (attributes != null) {
-            if (type.getName().equals("SIZ") && attributes instanceof SizAttributes) {
-                SizAttributes siz = (SizAttributes) attributes;
-                siz.setTmcItem(saved);
-                sizAttributesRepository.save(siz);
-            } else if (type.getName().equals("TOOL") && attributes instanceof ToolAttributes) {
-                ToolAttributes tool = (ToolAttributes) attributes;
-                tool.setTmcItem(saved);
-                toolAttributesRepository.save(tool);
-            } else if (type.getName().equals("EQUIPMENT") && attributes instanceof EquipmentAttributes) {
-                EquipmentAttributes equipment = (EquipmentAttributes) attributes;
-                equipment.setTmcItem(saved);
-                equipmentAttributesRepository.save(equipment);
-            } else {
-                throw new RuntimeException("Invalid attribute type for TmcType: " + type.getName());
+            switch (attributes) {
+                case SizAttributes siz when type.getName().equals("SIZ") -> {
+                    siz.setTmcItem(saved);
+                    sizAttributesRepository.save(siz);
+                }
+                case ToolAttributes tool when type.getName().equals("TOOL") -> {
+                    tool.setTmcItem(saved);
+                    toolAttributesRepository.save(tool);
+                }
+                case EquipmentAttributes equipment when type.getName().equals("EQUIPMENT") -> {
+                    equipment.setTmcItem(saved);
+                    equipmentAttributesRepository.save(equipment);
+                }
+                default -> throw new RuntimeException("Invalid attribute type for TmcType: " + type.getName());
             }
         }
 
@@ -106,8 +107,9 @@ public class TmcItemService {
             existing.setName(updatedTmcItem.getName());
         }
 
-        if (updatedTmcItem.getUnit() != null) {
-            existing.setUnit(updatedTmcItem.getUnit());
+        if (updatedTmcItem.getUnit() != null && updatedTmcItem.getUnit().getId() != null) {
+            Unit unit = unitService.findById(updatedTmcItem.getUnit().getId());
+            existing.setUnit(unit);
         }
 
         if (updatedTmcItem.getServiceLifeMonths() != null) {
@@ -127,19 +129,19 @@ public class TmcItemService {
                 case SizAttributes siz when saved.getType().getName().equals("SIZ") -> {
                     sizAttributesRepository.findById(saved.getId())
                             .ifPresent(sizAttributesRepository::delete);
-                    siz.setTmcId(saved.getId());
+                    siz.setTmcItem(saved);
                     sizAttributesRepository.save(siz);
                 }
                 case ToolAttributes tool when saved.getType().getName().equals("TOOL") -> {
                     toolAttributesRepository.findById(saved.getId())
                             .ifPresent(toolAttributesRepository::delete);
-                    tool.setTmcId(saved.getId());
+                    tool.setTmcItem(saved);
                     toolAttributesRepository.save(tool);
                 }
                 case EquipmentAttributes equipment when saved.getType().getName().equals("EQUIPMENT") -> {
                     equipmentAttributesRepository.findById(saved.getId())
                             .ifPresent(equipmentAttributesRepository::delete);
-                    equipment.setTmcId(saved.getId());
+                    equipment.setTmcItem(saved);
                     equipmentAttributesRepository.save(equipment);
                 }
                 default ->

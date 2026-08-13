@@ -11,10 +11,15 @@ import java.util.Optional;
 
 @Repository
 public interface TmcItemRepository extends JpaRepository<TmcItem, Long> {
+
     Optional<TmcItem> findByCode(String code);
 
     List<TmcItem> findByTypeId(Long typeId);
 
     @Query("SELECT i FROM TmcItem i WHERE i.type.name = :typeName")
     List<TmcItem> findByTypeName(@Param("typeName") String typeName);
+
+    List<TmcItem> findAllByOrderByIdDesc();
+
+    List<TmcItem> findByTypeNameOrderByIdDesc(String typeName);
 }

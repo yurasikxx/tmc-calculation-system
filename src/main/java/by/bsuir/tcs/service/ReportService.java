@@ -29,7 +29,7 @@ public class ReportService {
                             .tmcCode(tmc.getCode())
                             .tmcName(tmc.getName())
                             .tmcType(tmc.getType().getName())
-                            .unit(tmc.getUnit())
+                            .unit(tmc.getUnit().getCode())
                             .requiredQuantity(result.getRequiredQuantity())
                             .build();
                 })

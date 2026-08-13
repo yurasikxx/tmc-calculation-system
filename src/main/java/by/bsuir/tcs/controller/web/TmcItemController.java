@@ -1,12 +1,9 @@
 package by.bsuir.tcs.controller.web;
 
-import by.bsuir.tcs.entity.EquipmentAttributes;
-import by.bsuir.tcs.entity.SizAttributes;
-import by.bsuir.tcs.entity.TmcItem;
-import by.bsuir.tcs.entity.TmcType;
-import by.bsuir.tcs.entity.ToolAttributes;
+import by.bsuir.tcs.entity.*;
 import by.bsuir.tcs.service.TmcItemService;
 import by.bsuir.tcs.service.TmcTypeService;
+import by.bsuir.tcs.service.UnitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,6 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/tmc-items")
 @RequiredArgsConstructor
@@ -23,10 +22,22 @@ public class TmcItemController {
 
     private final TmcItemService tmcItemService;
     private final TmcTypeService tmcTypeService;
+    private final UnitService unitService;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("tmcItems", tmcItemService.findAllForCurrentUser());
+    public String list(
+            @RequestParam(required = false) String type,
+            Model model) {
+
+        List<TmcItem> items;
+        if (type != null && !type.isEmpty()) {
+            items = tmcItemService.findByTypeName(type);
+        } else {
+            items = tmcItemService.findAllForCurrentUser();
+        }
+
+        model.addAttribute("tmcItems", items);
+        model.addAttribute("selectedType", type);
         return "tmc-items/list";
     }
 
@@ -55,18 +66,11 @@ public class TmcItemController {
 
         model.addAttribute("tmcItem", tmcItem);
         model.addAttribute("attributeType", attributeType);
-
-        SizAttributes sizAttrs = new SizAttributes();
-        ToolAttributes toolAttrs = new ToolAttributes();
-        EquipmentAttributes equipAttrs = new EquipmentAttributes();
-
-        if ("SIZ".equals(attributeType)) {
-            model.addAttribute("attributes", sizAttrs);
-        } else if ("TOOL".equals(attributeType)) {
-            model.addAttribute("attributes", toolAttrs);
-        } else if ("EQUIPMENT".equals(attributeType)) {
-            model.addAttribute("attributes", equipAttrs);
-        }
+        model.addAttribute("tmcTypes", tmcTypeService.findAvailableForCurrentUser());
+        model.addAttribute("units", unitService.findAll());
+        model.addAttribute("sizAttributes", new SizAttributes());
+        model.addAttribute("toolAttributes", new ToolAttributes());
+        model.addAttribute("equipmentAttributes", new EquipmentAttributes());
 
         return "tmc-items/form";
     }
@@ -129,6 +133,8 @@ public class TmcItemController {
 
         model.addAttribute("tmcItem", tmcItem);
         model.addAttribute("attributeType", attributeType);
+        model.addAttribute("tmcTypes", tmcTypeService.findAvailableForCurrentUser());
+        model.addAttribute("units", unitService.findAll());
 
         if ("SIZ".equals(attributeType)) {
             SizAttributes attrs = tmcItemService.findSizAttributes(id);
