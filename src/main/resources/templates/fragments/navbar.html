@@ -56,19 +56,24 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
-                                        <span class="dropdown-item-text">
-                                            <i class="bi bi-person"></i>
-                                            <span th:text="${currentUser != null ? currentUser.employeeFullNameWithInitials : currentUser.username}">Иванов И.И.</span>
-                                        </span>
+                                <span class="dropdown-item-text">
+                                    <i class="bi bi-person"></i>
+                                    <span th:text="${currentUser != null ? currentUser.employeeFullNameWithInitials : currentUser.username}">Иванов И.И.</span>
+                                </span>
                             </li>
                             <li>
-                                        <span class="dropdown-item-text">
-                                            <i class="bi bi-shield"></i>
-                                            <span th:text="${currentUserRoleName}">Инженер</span>
-                                        </span>
+                                <span class="dropdown-item-text">
+                                    <i class="bi bi-shield"></i>
+                                    <span th:text="${currentUserRoleName}">Инженер</span>
+                                </span>
                             </li>
                             <li>
                                 <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/profile">
+                                    <i class="bi bi-person-gear"></i> Профиль
+                                </a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="/logout">

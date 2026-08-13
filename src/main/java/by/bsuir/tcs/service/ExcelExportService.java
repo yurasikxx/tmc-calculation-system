@@ -1,7 +1,6 @@
 package by.bsuir.tcs.service;
 
 import by.bsuir.tcs.dto.ReportItemDto;
-import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -14,8 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
-public class ReportExportService {
+public class ExcelExportService {
 
     public ByteArrayInputStream exportToExcel(Map<String, List<ReportItemDto>> groupedByType, Integer year, Integer month) {
         try (Workbook workbook = new XSSFWorkbook()) {

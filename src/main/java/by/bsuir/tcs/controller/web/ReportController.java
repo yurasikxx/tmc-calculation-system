@@ -1,7 +1,8 @@
 package by.bsuir.tcs.controller.web;
 
 import by.bsuir.tcs.dto.ReportItemDto;
-import by.bsuir.tcs.service.ReportExportService;
+import by.bsuir.tcs.service.ExcelExportService;
+import by.bsuir.tcs.service.PdfExportService;
 import by.bsuir.tcs.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
@@ -24,21 +25,21 @@ import java.util.Map;
 public class ReportController {
 
     private final ReportService reportService;
-    private final ReportExportService reportExportService;
+    private final ExcelExportService excelExportService;
+    private final PdfExportService pdfExportService;
 
     @GetMapping("/export/excel")
     public ResponseEntity<InputStreamResource> exportExcel(
             @RequestParam Integer year,
             @RequestParam Integer month) {
 
-        List<ReportItemDto> report = reportService.getReportByPeriod(year, month);
         Map<String, List<ReportItemDto>> groupedByType = reportService.groupByTmcType(year, month);
 
         InputStreamResource resource = new InputStreamResource(
-                reportExportService.exportToExcel(groupedByType, year, month)
+                excelExportService.exportToExcel(groupedByType, year, month)
         );
 
-        String filename = "Расчёт_ТМЦ_" + month + "_" + year + ".xlsx";
+        String filename = "Расчет_ТМЦ_" + month + "_" + year + ".xlsx";
         String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8)
                 .replace("+", "%20");
 
@@ -46,6 +47,28 @@ public class ReportController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename*=UTF-8''" + encodedFilename)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
+    }
+
+    @GetMapping("/export/pdf")
+    public ResponseEntity<InputStreamResource> exportPdf(
+            @RequestParam Integer year,
+            @RequestParam Integer month) {
+
+        Map<String, List<ReportItemDto>> groupedByType = reportService.groupByTmcType(year, month);
+
+        InputStreamResource resource = new InputStreamResource(
+                pdfExportService.exportToPdf(groupedByType, year, month)
+        );
+
+        String filename = "Расчет_ТМЦ_" + month + "_" + year + ".pdf";
+        String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8)
+                .replace("+", "%20");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename*=UTF-8''" + encodedFilename)
+                .contentType(MediaType.APPLICATION_PDF)
                 .body(resource);
     }
 }
