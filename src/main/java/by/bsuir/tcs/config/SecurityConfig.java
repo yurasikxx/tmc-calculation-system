@@ -1,4 +1,4 @@
-package by.bsuir.tcs.config;
+package by.bsuir.tcs.config.security;
 
 import by.bsuir.tcs.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,21 +19,15 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final UserService userService;
+    private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/",
-                                "/index",
-                                "/login",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**",
-                                "/webjars/**"
-                        ).permitAll()
+                        .requestMatchers("/", "/index", "/login", "/css/**", "/js/**", "/images/**", "/webjars/**")
+                        .permitAll()
                         .requestMatchers("/departments/**", "/professions/**").hasAnyRole("LABOR", "ADMIN")
                         .requestMatchers("/employees/**").hasAnyRole("LABOR", "ADMIN", "MTS")
                         .requestMatchers("/tmc-items/siz/**").hasRole("OT")
@@ -43,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/norms/tool/**").hasRole("STOREKEEPER")
                         .requestMatchers("/norms/equipment/**").hasRole("TECHNOLOG")
                         .requestMatchers("/calculations/**", "/api/**").hasRole("MTS")
+                        .requestMatchers("/staffing-plans/**").hasRole("MTS")
                         .requestMatchers("/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -50,11 +45,10 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/", true)
-                        .failureUrl("/login?error=true")
+                        .failureHandler(customAuthenticationFailureHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)

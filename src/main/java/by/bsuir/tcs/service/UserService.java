@@ -3,6 +3,7 @@ package by.bsuir.tcs.service;
 import by.bsuir.tcs.entity.User;
 import by.bsuir.tcs.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +26,10 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsernameWithRole(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        if (!user.getIsActive()) {
+            throw new DisabledException("Ваша учетная запись заблокирована. Обратитесь к администратору.");
+        }
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
