@@ -4,6 +4,8 @@ import by.bsuir.tcs.entity.Profession;
 import by.bsuir.tcs.repository.NormRepository;
 import by.bsuir.tcs.repository.ProfessionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,16 @@ public class ProfessionService {
     @Transactional(readOnly = true)
     public List<Profession> findAll() {
         return professionRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Profession> findAll(Pageable pageable) {
+        return professionRepository.findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Profession> findBySearch(String search, Pageable pageable) {
+        return professionRepository.findByNameContainingIgnoreCase(search, pageable);
     }
 
     @Transactional(readOnly = true)

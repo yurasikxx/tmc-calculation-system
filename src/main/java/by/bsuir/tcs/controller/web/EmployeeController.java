@@ -5,6 +5,10 @@ import by.bsuir.tcs.service.DepartmentService;
 import by.bsuir.tcs.service.EmployeeService;
 import by.bsuir.tcs.service.ProfessionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +24,33 @@ public class EmployeeController {
     private final DepartmentService departmentService;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("employees", employeeService.findAll());
+    public String list(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            Model model) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
+        Page<Employee> employeePage;
+
+        if (search != null && !search.isEmpty()) {
+            employeePage = employeeService.findBySearch(search, pageable);
+        } else {
+            employeePage = employeeService.findAll(pageable);
+        }
+
+        model.addAttribute("employees", employeePage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", employeePage.getTotalPages());
+        model.addAttribute("totalItems", employeePage.getTotalElements());
+        model.addAttribute("size", size);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+        model.addAttribute("searchQuery", search);
+
         return "employees/list";
     }
 

@@ -5,6 +5,8 @@ import by.bsuir.tcs.entity.Employee;
 import by.bsuir.tcs.entity.Profession;
 import by.bsuir.tcs.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,16 @@ public class EmployeeService {
     @Transactional(readOnly = true)
     public List<Employee> findAll() {
         return employeeRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Employee> findAll(Pageable pageable) {
+        return employeeRepository.findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Employee> findBySearch(String search, Pageable pageable) {
+        return employeeRepository.findByFullNameContainingIgnoreCase(search, pageable);
     }
 
     @Transactional(readOnly = true)

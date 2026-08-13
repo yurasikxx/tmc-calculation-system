@@ -5,6 +5,10 @@ import by.bsuir.tcs.service.TmcItemService;
 import by.bsuir.tcs.service.TmcTypeService;
 import by.bsuir.tcs.service.UnitService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,17 +31,39 @@ public class TmcItemController {
     @GetMapping
     public String list(
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
             Model model) {
 
-        List<TmcItem> items;
-        if (type != null && !type.isEmpty()) {
-            items = tmcItemService.findByTypeName(type);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
+        Page<TmcItem> itemPage;
+
+        String role = getCurrentUserRole();
+
+        if (type != null && !type.isEmpty() && search != null && !search.isEmpty()) {
+            itemPage = tmcItemService.findByTypeAndSearch(type, search, pageable);
+        } else if (type != null && !type.isEmpty()) {
+            itemPage = tmcItemService.findByType(type, pageable);
+        } else if (search != null && !search.isEmpty()) {
+            itemPage = tmcItemService.findBySearch(search, pageable);
         } else {
-            items = tmcItemService.findAllForCurrentUser();
+            itemPage = tmcItemService.findAllForCurrentUser(pageable);
         }
 
-        model.addAttribute("tmcItems", items);
+        model.addAttribute("tmcItems", itemPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", itemPage.getTotalPages());
+        model.addAttribute("totalItems", itemPage.getTotalElements());
+        model.addAttribute("size", size);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         model.addAttribute("selectedType", type);
+        model.addAttribute("searchQuery", search);
+
         return "tmc-items/list";
     }
 

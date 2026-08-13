@@ -5,6 +5,8 @@ import by.bsuir.tcs.entity.Profession;
 import by.bsuir.tcs.entity.TmcItem;
 import by.bsuir.tcs.repository.NormRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,20 +24,40 @@ public class NormService {
     private final ProfessionService professionService;
 
     @Transactional(readOnly = true)
-    public List<Norm> findAll() {
-        return normRepository.findAll();
+    public Page<Norm> findAllForCurrentUser(Pageable pageable) {
+        String role = getCurrentUserRole();
+        return switch (role) {
+            case "ROLE_OT" -> normRepository.findByTmcTypeName("SIZ", pageable);
+            case "ROLE_TECHNOLOG" -> normRepository.findByTmcTypeName("EQUIPMENT", pageable);
+            case "ROLE_STOREKEEPER" -> normRepository.findByTmcTypeName("TOOL", pageable);
+            case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> normRepository.findAll(pageable);
+            default -> Page.empty(pageable);
+        };
     }
 
     @Transactional(readOnly = true)
-    public List<Norm> findAllForCurrentUser() {
-        String role = getCurrentUserRole();
-        return switch (role) {
-            case "ROLE_OT" -> normRepository.findByTmcTypeName("SIZ");
-            case "ROLE_TECHNOLOG" -> normRepository.findByTmcTypeName("EQUIPMENT");
-            case "ROLE_STOREKEEPER" -> normRepository.findByTmcTypeName("TOOL");
-            case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> normRepository.findAll();
-            default -> List.of();
-        };
+    public Page<Norm> findByProfession(String professionName, Pageable pageable) {
+        return normRepository.findByProfessionName(professionName, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Norm> findByTmc(String tmcName, Pageable pageable) {
+        return normRepository.findByTmcName(tmcName, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Norm> findByProfessionAndTmc(String professionName, String tmcName, Pageable pageable) {
+        return normRepository.findByProfessionNameAndTmcName(professionName, tmcName, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Norm> findBySearch(String search, Pageable pageable) {
+        return normRepository.findBySearch(search, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Norm> findAll() {
+        return normRepository.findAll();
     }
 
     @Transactional(readOnly = true)

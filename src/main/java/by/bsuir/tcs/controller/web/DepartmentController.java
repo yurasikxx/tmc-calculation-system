@@ -3,6 +3,10 @@ package by.bsuir.tcs.controller.web;
 import by.bsuir.tcs.entity.Department;
 import by.bsuir.tcs.service.DepartmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +20,33 @@ public class DepartmentController {
     private final DepartmentService departmentService;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("departments", departmentService.findAll());
+    public String list(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir,
+            Model model) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
+        Page<Department> departmentPage;
+
+        if (search != null && !search.isEmpty()) {
+            departmentPage = departmentService.findBySearch(search, pageable);
+        } else {
+            departmentPage = departmentService.findAll(pageable);
+        }
+
+        model.addAttribute("departments", departmentPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", departmentPage.getTotalPages());
+        model.addAttribute("totalItems", departmentPage.getTotalElements());
+        model.addAttribute("size", size);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+        model.addAttribute("searchQuery", search);
+
         return "departments/list";
     }
 

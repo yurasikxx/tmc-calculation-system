@@ -3,6 +3,8 @@ package by.bsuir.tcs.service;
 import by.bsuir.tcs.entity.*;
 import by.bsuir.tcs.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,15 +30,31 @@ public class TmcItemService {
     }
 
     @Transactional(readOnly = true)
-    public List<TmcItem> findAllForCurrentUser() {
+    public Page<TmcItem> findAllForCurrentUser(Pageable pageable) {
         String role = getCurrentUserRole();
         return switch (role) {
-            case "ROLE_OT" -> tmcItemRepository.findByTypeNameOrderByIdDesc("SIZ");
-            case "ROLE_TECHNOLOG" -> tmcItemRepository.findByTypeNameOrderByIdDesc("EQUIPMENT");
-            case "ROLE_STOREKEEPER" -> tmcItemRepository.findByTypeNameOrderByIdDesc("TOOL");
-            case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> tmcItemRepository.findAllByOrderByIdDesc();
-            default -> List.of();
+            case "ROLE_OT" -> tmcItemRepository.findByTypeName("SIZ", pageable);
+            case "ROLE_TECHNOLOG" -> tmcItemRepository.findByTypeName("EQUIPMENT", pageable);
+            case "ROLE_STOREKEEPER" -> tmcItemRepository.findByTypeName("TOOL", pageable);
+            case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> tmcItemRepository.findAll(pageable);
+            default -> Page.empty(pageable);
         };
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TmcItem> findByType(String typeName, Pageable pageable) {
+        return tmcItemRepository.findByTypeName(typeName, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TmcItem> findBySearch(String search, Pageable pageable) {
+        return tmcItemRepository.findByCodeContainingIgnoreCaseOrNameContainingIgnoreCase(search, search, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TmcItem> findByTypeAndSearch(String typeName, String search, Pageable pageable) {
+        return tmcItemRepository.findByTypeNameAndCodeContainingIgnoreCaseOrNameContainingIgnoreCase(
+                typeName, search, search, pageable);
     }
 
     @Transactional(readOnly = true)

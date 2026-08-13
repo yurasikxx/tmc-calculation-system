@@ -3,47 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Список профессий</title>
+    <title>Профессии</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
 
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Список профессий</h2>
-        <a href="/professions/create" class="btn btn-primary">Добавить профессию</a>
+        <a href="/professions/create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Добавить профессию
+        </a>
     </div>
 
-    <table class="table table-striped table-hover">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Название</th>
-            <th style="width: 200px;">Действия</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="prof : ${professions}">
-            <td th:text="${prof.id}">1</td>
-            <td th:text="${prof.name}">Токарь 5 разряда</td>
-            <td>
-                <a th:href="@{/professions/edit/{id}(id=${prof.id})}" class="btn btn-sm btn-warning">Изменить</a>
-                <form th:action="@{/professions/delete/{id}(id=${prof.id})}" method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-sm btn-danger"
-                            onclick="return confirm('Удалить профессию? Если на неё есть нормы, удаление будет запрещено.')">
-                        Удалить
+    <div class="row mb-3 g-2 align-items-end">
+        <div class="col-md-4">
+            <form method="get" id="searchForm">
+                <label for="searchInput" class="form-label">Поиск</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" name="search"
+                           placeholder="Название профессии" th:value="${searchQuery}">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i>
                     </button>
-                </form>
-            </td>
-        </tr>
-        <tr th:if="${professions.isEmpty()}">
-            <td colspan="3" class="text-center text-muted">Нет профессий</td>
-        </tr>
-        </tbody>
-    </table>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-2">
+            <form method="get" id="sizeForm">
+                <label for="sizeSelect" class="form-label">Записей</label>
+                <select class="form-select" id="sizeSelect" name="size" onchange="this.form.submit()">
+                    <option value="5" th:selected="${size == 5}">5</option>
+                    <option value="10" th:selected="${size == 10}">10</option>
+                    <option value="25" th:selected="${size == 25}">25</option>
+                    <option value="50" th:selected="${size == 50}">50</option>
+                </select>
+            </form>
+        </div>
+        <div class="col-md-2 text-end">
+            <a href="/professions" class="btn btn-secondary">
+                <i class="bi bi-arrow-counterclockwise"></i> Сбросить
+            </a>
+        </div>
+        <div class="col-md-2 text-end">
+            <span class="text-muted">
+                Всего: <strong th:text="${totalItems}">0</strong>
+            </span>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>
+                    <a th:href="@{/professions(page=${currentPage}, size=${size}, sortBy='id', sortDir=${reverseSortDir}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        ID
+                        <i th:if="${sortBy == 'id'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/professions(page=${currentPage}, size=${size}, sortBy='name', sortDir=${reverseSortDir}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        Название
+                        <i th:if="${sortBy == 'name'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th style="width: 200px;">Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="prof : ${professions}">
+                <td th:text="${prof.id}">1</td>
+                <td th:text="${prof.name}">Токарь 5 разряда</td>
+                <td>
+                    <a th:href="@{/professions/edit/{id}(id=${prof.id})}" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form th:action="@{/professions/delete/{id}(id=${prof.id})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Удалить профессию? Если на неё есть нормы, удаление будет запрещено.')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${professions.isEmpty()}">
+                <td colspan="3" class="text-center text-muted">Нет профессий</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav th:if="${totalPages > 0}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                <a class="page-link"
+                   th:href="@{/professions(page=${currentPage - 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, search=${searchQuery})}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                class="page-item" th:classappend="${pageNum == currentPage} ? 'active' : ''">
+                <a class="page-link"
+                   th:href="@{/professions(page=${pageNum}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, search=${searchQuery})}"
+                   th:text="${pageNum + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+                <a class="page-link"
+                   th:href="@{/professions(page=${currentPage + 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, search=${searchQuery})}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
