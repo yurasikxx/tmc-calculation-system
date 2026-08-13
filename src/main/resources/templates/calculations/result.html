@@ -19,9 +19,9 @@
             <a href="/calculations" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Новый расчёт
             </a>
-            <button class="btn btn-success" disabled>
+            <a th:href="@{/api/reports/export/excel(year=${year}, month=${month})}" class="btn btn-success">
                 <i class="bi bi-file-earmark-excel"></i> Экспорт в Excel
-            </button>
+            </a>
         </div>
     </div>
 

@@ -30,6 +30,11 @@ public class EmployeeService {
                 .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
     }
 
+    @Transactional(readOnly = true)
+    public Employee findByFullName(String fullName) {
+        return employeeRepository.findByFullName(fullName).orElse(null);
+    }
+
     @Transactional
     public Employee create(Employee employee) {
         if (employee.getProfession() == null || employee.getProfession().getId() == null) {

@@ -26,33 +26,10 @@ public class StaffingPlanService {
     @Transactional
     public List<StaffingPlan> importPlan(List<StaffingPlanRequest> requests) {
         List<StaffingPlan> savedPlans = new ArrayList<>();
+
         for (StaffingPlanRequest request : requests) {
             Employee employee = findOrCreateEmployee(request);
-
-            StaffingPlan plan = StaffingPlan.builder()
-                    .employee(employee)
-                    .actionType(request.getActionType())
-                    .effectiveDate(request.getEffectiveDate())
-                    .build();
-
-            if ("TRANSFER".equals(request.getActionType())) {
-                if (request.getNewProfessionName() != null) {
-                    Profession newProfession = professionService.findAll().stream()
-                            .filter(p -> p.getName().equals(request.getNewProfessionName()))
-                            .findFirst()
-                            .orElseThrow(() -> new RuntimeException("Profession not found: " + request.getNewProfessionName()));
-                    plan.setNewProfession(newProfession);
-                }
-
-                if (request.getNewDepartmentName() != null) {
-                    Department newDepartment = departmentService.findAll().stream()
-                            .filter(d -> d.getName().equals(request.getNewDepartmentName()))
-                            .findFirst()
-                            .orElseThrow(() -> new RuntimeException("Department not found: " + request.getNewDepartmentName()));
-                    plan.setNewDepartment(newDepartment);
-                }
-            }
-
+            StaffingPlan plan = createStaffingPlan(employee, request);
             savedPlans.add(staffingPlanRepository.save(plan));
         }
 
@@ -60,34 +37,85 @@ public class StaffingPlanService {
     }
 
     private Employee findOrCreateEmployee(StaffingPlanRequest request) {
-        List<Employee> employees = employeeService.findAll();
-        Employee employee = employees.stream()
-                .filter(e -> e.getFullName().equals(request.getFullName()))
-                .findFirst()
-                .orElse(null);
+        Employee employee = employeeService.findByFullName(request.getFullName());
 
         if (employee == null) {
-            Profession profession = professionService.findAll().stream()
-                    .filter(p -> p.getName().equals(request.getProfessionName()))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Profession not found: " + request.getProfessionName()));
-
-            Department department = departmentService.findAll().stream()
-                    .filter(d -> d.getName().equals(request.getDepartmentName()))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Department not found: " + request.getDepartmentName()));
-
-            employee = Employee.builder()
-                    .fullName(request.getFullName())
-                    .profession(profession)
-                    .department(department)
-                    .hireDate(LocalDate.now())
-                    .build();
-
-            employee = employeeService.create(employee);
+            Profession profession = getProfessionByName(request.getProfessionName());
+            Department department = getDepartmentByName(request.getDepartmentName());
+            employee = createNewEmployee(request, profession, department);
         }
 
         return employee;
+    }
+
+    private Employee createNewEmployee(StaffingPlanRequest request, Profession profession, Department department) {
+        Employee employee = Employee.builder()
+                .fullName(request.getFullName())
+                .profession(profession)
+                .department(department)
+                .hireDate(request.getEffectiveDate())
+                .build();
+        return employeeService.create(employee);
+    }
+
+    private StaffingPlan createStaffingPlan(Employee employee, StaffingPlanRequest request) {
+        StaffingPlan.StaffingPlanBuilder builder = StaffingPlan.builder()
+                .employee(employee)
+                .actionType(request.getActionType())
+                .effectiveDate(request.getEffectiveDate());
+
+        if ("HIRE".equals(request.getActionType())) {
+            builder.newProfession(employee.getProfession());
+            builder.newDepartment(employee.getDepartment());
+        } else if ("TRANSFER".equals(request.getActionType())) {
+            handleTransfer(employee, request, builder);
+        } else if ("TERMINATE".equals(request.getActionType())) {
+            employee.setTerminationDate(request.getEffectiveDate());
+            employeeService.update(employee.getId(), employee);
+        }
+
+        return builder.build();
+    }
+
+    private void handleTransfer(Employee employee, StaffingPlanRequest request, StaffingPlan.StaffingPlanBuilder builder) {
+        Profession newProfession = null;
+        Department newDepartment = null;
+
+        if (request.getNewProfessionName() != null && !request.getNewProfessionName().isEmpty()) {
+            newProfession = getProfessionByName(request.getNewProfessionName());
+            employee.setProfession(newProfession);
+        }
+
+        if (request.getNewDepartmentName() != null && !request.getNewDepartmentName().isEmpty()) {
+            newDepartment = getDepartmentByName(request.getNewDepartmentName());
+            employee.setDepartment(newDepartment);
+        }
+
+        if (newProfession != null || newDepartment != null) {
+            employeeService.update(employee.getId(), employee);
+            builder.newProfession(newProfession);
+            builder.newDepartment(newDepartment);
+        }
+    }
+
+    private Profession getProfessionByName(String name) {
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+        return professionService.findAll().stream()
+                .filter(p -> p.getName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Profession not found: " + name));
+    }
+
+    private Department getDepartmentByName(String name) {
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+        return departmentService.findAll().stream()
+                .filter(d -> d.getName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Department not found: " + name));
     }
 
     @Transactional(readOnly = true)

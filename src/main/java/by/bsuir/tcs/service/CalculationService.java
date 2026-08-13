@@ -1,6 +1,10 @@
 package by.bsuir.tcs.service;
 
-import by.bsuir.tcs.entity.*;
+import by.bsuir.tcs.entity.CalculationResult;
+import by.bsuir.tcs.entity.Norm;
+import by.bsuir.tcs.entity.Profession;
+import by.bsuir.tcs.entity.StaffingPlan;
+import by.bsuir.tcs.entity.TmcItem;
 import by.bsuir.tcs.repository.NormRepository;
 import by.bsuir.tcs.repository.StaffingPlanRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,13 +37,7 @@ public class CalculationService {
         Map<Long, Integer> aggregated = new HashMap<>();
 
         for (StaffingPlan plan : plans) {
-            if (!plan.getActionType().equals("HIRE") && !plan.getActionType().equals("TRANSFER")) {
-                continue;
-            }
-
-            Profession profession = plan.getActionType().equals("HIRE")
-                    ? plan.getEmployee().getProfession()
-                    : plan.getNewProfession();
+            Profession profession = getProfessionForPlan(plan);
 
             if (profession == null) {
                 continue;
@@ -57,6 +55,26 @@ public class CalculationService {
             }
         }
 
+        saveCalculationResults(aggregated, year, month);
+    }
+
+    private Profession getProfessionForPlan(StaffingPlan plan) {
+        if ("TERMINATE".equals(plan.getActionType())) {
+            return null;
+        }
+
+        if ("HIRE".equals(plan.getActionType())) {
+            return plan.getNewProfession();
+        }
+
+        if ("TRANSFER".equals(plan.getActionType())) {
+            return plan.getNewProfession();
+        }
+
+        return null;
+    }
+
+    private void saveCalculationResults(Map<Long, Integer> aggregated, Integer year, Integer month) {
         for (Map.Entry<Long, Integer> entry : aggregated.entrySet()) {
             Long tmcId = entry.getKey();
             Integer quantity = entry.getValue();

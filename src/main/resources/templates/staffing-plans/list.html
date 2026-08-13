@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загруженные кадровые планы</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Загруженные кадровые планы</h2>
+        <a href="/staffing-plans/upload" class="btn btn-primary">
+            <i class="bi bi-upload"></i> Загрузить новый план
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Сотрудник</th>
+                <th>Действие</th>
+                <th>Дата вступления</th>
+                <th>Профессия</th>
+                <th>Подразделение</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="plan : ${plans}">
+                <td th:text="${plan.id}">1</td>
+                <td th:text="${plan.employee.fullName}">Иванов И.И.</td>
+                <td>
+                        <span th:classappend="${plan.actionType == 'HIRE'} ? 'bg-success' : (${plan.actionType == 'TERMINATE'} ? 'bg-danger' : 'bg-warning')"
+                              class="badge">
+                            <span th:text="${plan.actionType == 'HIRE'} ? 'Приём' : (${plan.actionType == 'TRANSFER'} ? 'Перевод' : 'Увольнение')">Приём</span>
+                        </span>
+                </td>
+                <td th:text="${plan.effectiveDate}">2026-08-01</td>
+                <td>
+                    <span th:if="${plan.actionType == 'HIRE'}"
+                          th:text="${plan.newProfession != null ? plan.newProfession.name : '-'}">Токарь</span>
+                    <span th:if="${plan.actionType == 'TRANSFER'}"
+                          th:text="${plan.newProfession != null ? plan.newProfession.name : plan.employee.profession.name}">Токарь</span>
+                    <span th:if="${plan.actionType == 'TERMINATE'}"
+                          th:text="${plan.employee.profession.name}">Токарь</span>
+                </td>
+                <td>
+                    <span th:if="${plan.actionType == 'HIRE'}"
+                          th:text="${plan.newDepartment != null ? plan.newDepartment.name : '-'}">Цех №3</span>
+                    <span th:if="${plan.actionType == 'TRANSFER'}"
+                          th:text="${plan.newDepartment != null ? plan.newDepartment.name : plan.employee.department.name}">Цех №3</span>
+                    <span th:if="${plan.actionType == 'TERMINATE'}"
+                          th:text="${plan.employee.department.name}">Цех №3</span>
+                </td>
+            </tr>
+            <tr th:if="${plans.isEmpty()}">
+                <td colspan="6" class="text-center text-muted">Нет загруженных кадровых планов</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
