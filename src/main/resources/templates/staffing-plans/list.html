@@ -20,16 +20,121 @@
         </a>
     </div>
 
+    <div class="row mb-3 g-2 align-items-end">
+        <div class="col-md-4">
+            <form method="get" id="periodForm">
+                <label class="form-label">Период</label>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <select class="form-select" name="month" onchange="this.form.submit()">
+                            <option value="">Месяц</option>
+                            <option value="1" th:selected="${selectedMonth == 1}">Январь</option>
+                            <option value="2" th:selected="${selectedMonth == 2}">Февраль</option>
+                            <option value="3" th:selected="${selectedMonth == 3}">Март</option>
+                            <option value="4" th:selected="${selectedMonth == 4}">Апрель</option>
+                            <option value="5" th:selected="${selectedMonth == 5}">Май</option>
+                            <option value="6" th:selected="${selectedMonth == 6}">Июнь</option>
+                            <option value="7" th:selected="${selectedMonth == 7}">Июль</option>
+                            <option value="8" th:selected="${selectedMonth == 8}">Август</option>
+                            <option value="9" th:selected="${selectedMonth == 9}">Сентябрь</option>
+                            <option value="10" th:selected="${selectedMonth == 10}">Октябрь</option>
+                            <option value="11" th:selected="${selectedMonth == 11}">Ноябрь</option>
+                            <option value="12" th:selected="${selectedMonth == 12}">Декабрь</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <select class="form-select" name="year" onchange="this.form.submit()">
+                            <option value="">Год</option>
+                            <option value="2024" th:selected="${selectedYear == 2024}">2024</option>
+                            <option value="2025" th:selected="${selectedYear == 2025}">2025</option>
+                            <option value="2026" th:selected="${selectedYear == 2026}">2026</option>
+                            <option value="2027" th:selected="${selectedYear == 2027}">2027</option>
+                            <option value="2028" th:selected="${selectedYear == 2028}">2028</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-3">
+            <form method="get" id="actionForm">
+                <label for="actionFilter" class="form-label">Тип действия</label>
+                <select class="form-select" id="actionFilter" name="actionType" onchange="this.form.submit()">
+                    <option value="">Все действия</option>
+                    <option value="HIRE" th:selected="${selectedActionType == 'HIRE'}">Приём</option>
+                    <option value="TRANSFER" th:selected="${selectedActionType == 'TRANSFER'}">Перевод</option>
+                    <option value="TERMINATE" th:selected="${selectedActionType == 'TERMINATE'}">Увольнение</option>
+                </select>
+            </form>
+        </div>
+        <div class="col-md-2">
+            <form method="get" id="sizeForm">
+                <label for="sizeSelect" class="form-label">Записей</label>
+                <select class="form-select" id="sizeSelect" name="size" onchange="this.form.submit()">
+                    <option value="5" th:selected="${size == 5}">5</option>
+                    <option value="10" th:selected="${size == 10}">10</option>
+                    <option value="25" th:selected="${size == 25}">25</option>
+                    <option value="50" th:selected="${size == 50}">50</option>
+                </select>
+            </form>
+        </div>
+        <div class="col-md-2 text-end">
+            <a href="/staffing-plans/list" class="btn btn-secondary">
+                <i class="bi bi-arrow-counterclockwise"></i> Сбросить
+            </a>
+        </div>
+        <div class="col-md-1 text-end">
+            <span class="text-muted">
+                Всего: <strong th:text="${totalItems}">0</strong>
+            </span>
+        </div>
+    </div>
+
     <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead>
             <tr>
-                <th>ID</th>
-                <th>Сотрудник</th>
-                <th>Действие</th>
-                <th>Дата вступления</th>
-                <th>Профессия</th>
-                <th>Подразделение</th>
+                <th>
+                    <a th:href="@{/staffing-plans/list(page=${currentPage}, size=${size}, sortBy='id', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, actionType=${selectedActionType})}"
+                       class="text-decoration-none text-dark">
+                        ID
+                        <i th:if="${sortBy == 'id'}" th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/staffing-plans/list(page=${currentPage}, size=${size}, sortBy='employee.fullName', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, actionType=${selectedActionType})}"
+                       class="text-decoration-none text-dark">
+                        Сотрудник
+                        <i th:if="${sortBy == 'employee.fullName'}" th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/staffing-plans/list(page=${currentPage}, size=${size}, sortBy='actionType', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, actionType=${selectedActionType})}"
+                       class="text-decoration-none text-dark">
+                        Действие
+                        <i th:if="${sortBy == 'actionType'}" th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/staffing-plans/list(page=${currentPage}, size=${size}, sortBy='effectiveDate', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, actionType=${selectedActionType})}"
+                       class="text-decoration-none text-dark">
+                        Дата вступления
+                        <i th:if="${sortBy == 'effectiveDate'}" th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/staffing-plans/list(page=${currentPage}, size=${size}, sortBy='newProfession.name', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, actionType=${selectedActionType})}"
+                       class="text-decoration-none text-dark">
+                        Профессия
+                        <i th:if="${sortBy == 'newProfession.name'}" th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/staffing-plans/list(page=${currentPage}, size=${size}, sortBy='newDepartment.name', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, actionType=${selectedActionType})}"
+                       class="text-decoration-none text-dark">
+                        Подразделение
+                        <i th:if="${sortBy == 'newDepartment.name'}" th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
             </tr>
             </thead>
             <tbody>
@@ -37,27 +142,20 @@
                 <td th:text="${plan.id}">1</td>
                 <td th:text="${plan.employee.fullName}">Иванов И.И.</td>
                 <td>
-                        <span th:classappend="${plan.actionType == 'HIRE'} ? 'bg-success' : (${plan.actionType == 'TERMINATE'} ? 'bg-danger' : 'bg-warning')"
-                              class="badge">
+                        <span th:classappend="${plan.actionType == 'HIRE'} ? 'bg-success' : (${plan.actionType == 'TERMINATE'} ? 'bg-danger' : 'bg-warning')" class="badge">
                             <span th:text="${plan.actionType == 'HIRE'} ? 'Приём' : (${plan.actionType == 'TRANSFER'} ? 'Перевод' : 'Увольнение')">Приём</span>
                         </span>
                 </td>
                 <td th:text="${plan.effectiveDate}">2026-08-01</td>
                 <td>
-                    <span th:if="${plan.actionType == 'HIRE'}"
-                          th:text="${plan.newProfession != null ? plan.newProfession.name : '-'}">Токарь</span>
-                    <span th:if="${plan.actionType == 'TRANSFER'}"
-                          th:text="${plan.newProfession != null ? plan.newProfession.name : plan.employee.profession.name}">Токарь</span>
-                    <span th:if="${plan.actionType == 'TERMINATE'}"
-                          th:text="${plan.employee.profession.name}">Токарь</span>
+                    <span th:if="${plan.actionType == 'HIRE'}" th:text="${plan.newProfession != null ? plan.newProfession.name : '-'}">Токарь</span>
+                    <span th:if="${plan.actionType == 'TRANSFER'}" th:text="${plan.newProfession != null ? plan.newProfession.name : plan.employee.profession.name}">Токарь</span>
+                    <span th:if="${plan.actionType == 'TERMINATE'}" th:text="${plan.employee.profession.name}">Токарь</span>
                 </td>
                 <td>
-                    <span th:if="${plan.actionType == 'HIRE'}"
-                          th:text="${plan.newDepartment != null ? plan.newDepartment.name : '-'}">Цех №3</span>
-                    <span th:if="${plan.actionType == 'TRANSFER'}"
-                          th:text="${plan.newDepartment != null ? plan.newDepartment.name : plan.employee.department.name}">Цех №3</span>
-                    <span th:if="${plan.actionType == 'TERMINATE'}"
-                          th:text="${plan.employee.department.name}">Цех №3</span>
+                    <span th:if="${plan.actionType == 'HIRE'}" th:text="${plan.newDepartment != null ? plan.newDepartment.name : '-'}">Цех №3</span>
+                    <span th:if="${plan.actionType == 'TRANSFER'}" th:text="${plan.newDepartment != null ? plan.newDepartment.name : plan.employee.department.name}">Цех №3</span>
+                    <span th:if="${plan.actionType == 'TERMINATE'}" th:text="${plan.employee.department.name}">Цех №3</span>
                 </td>
             </tr>
             <tr th:if="${plans.isEmpty()}">
@@ -66,8 +164,30 @@
             </tbody>
         </table>
     </div>
+
+    <nav th:if="${totalPages > 0}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                <a class="page-link"
+                   th:href="@{/staffing-plans/list(page=${currentPage - 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, year=${selectedYear}, month=${selectedMonth}, actionType=${selectedActionType})}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                class="page-item" th:classappend="${pageNum == currentPage} ? 'active' : ''">
+                <a class="page-link"
+                   th:href="@{/staffing-plans/list(page=${pageNum}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, year=${selectedYear}, month=${selectedMonth}, actionType=${selectedActionType})}"
+                   th:text="${pageNum + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+                <a class="page-link"
+                   th:href="@{/staffing-plans/list(page=${currentPage + 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, year=${selectedYear}, month=${selectedMonth}, actionType=${selectedActionType})}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

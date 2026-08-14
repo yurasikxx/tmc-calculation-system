@@ -7,6 +7,8 @@ import by.bsuir.tcs.entity.Profession;
 import by.bsuir.tcs.entity.StaffingPlan;
 import by.bsuir.tcs.repository.StaffingPlanRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,12 +121,27 @@ public class StaffingPlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<StaffingPlan> findByPeriod(LocalDate start, LocalDate end) {
-        return staffingPlanRepository.findByEffectiveDateBetween(start, end);
+    public Page<StaffingPlan> findAll(Pageable pageable) {
+        return staffingPlanRepository.findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<StaffingPlan> findByPeriod(LocalDate start, LocalDate end, Pageable pageable) {
+        return staffingPlanRepository.findByEffectiveDateBetween(start, end, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<StaffingPlan> findByActionType(String actionType, Pageable pageable) {
+        return staffingPlanRepository.findByActionType(actionType, pageable);
     }
 
     @Transactional(readOnly = true)
     public List<StaffingPlan> findAll() {
         return staffingPlanRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<StaffingPlan> findByPeriod(LocalDate start, LocalDate end) {
+        return staffingPlanRepository.findByEffectiveDateBetween(start, end);
     }
 }

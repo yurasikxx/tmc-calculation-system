@@ -7,9 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -17,32 +17,36 @@ public class DashboardService {
 
     private final DepartmentRepository departmentRepository;
     private final ProfessionRepository professionRepository;
+    private final EmployeeRepository employeeRepository;
     private final TmcItemRepository tmcItemRepository;
     private final NormRepository normRepository;
     private final CalculationResultRepository calculationResultRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public DashboardStatsDto getStats() {
         return DashboardStatsDto.builder()
                 .departmentsCount(departmentRepository.count())
                 .professionsCount(professionRepository.count())
+                .employeesCount(employeeRepository.count())
                 .tmcItemsCount(tmcItemRepository.count())
                 .normsCount(normRepository.count())
                 .calculationsCount(calculationResultRepository.count())
+                .usersCount(userRepository.count())
                 .build();
     }
 
     @Transactional(readOnly = true)
     public List<RecentCalculationDto> getRecentCalculations() {
-        return calculationResultRepository.findAll().stream()
+        return calculationResultRepository.findTop5ByOrderByCalculationDateDesc().stream()
                 .map(result -> RecentCalculationDto.builder()
                         .period(result.getPeriodMonth() + "/" + result.getPeriodYear())
                         .tmcName(result.getTmcItem().getName())
+                        .tmcCode(result.getTmcItem().getCode())
                         .requiredQuantity(result.getRequiredQuantity())
                         .formattedDate(result.getCalculationDate()
                                 .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))
                         .build())
-                .limit(5)
                 .collect(Collectors.toList());
     }
 }

@@ -4,6 +4,10 @@ import by.bsuir.tcs.dto.StaffingPlanRequest;
 import by.bsuir.tcs.entity.StaffingPlan;
 import by.bsuir.tcs.service.StaffingPlanService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -58,6 +63,45 @@ public class StaffingPlanWebController {
         return "redirect:/staffing-plans/upload";
     }
 
+    @GetMapping("/list")
+    public String list(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) String actionType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "effectiveDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            Model model) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
+        Page<StaffingPlan> planPage;
+
+        if (year != null && month != null) {
+            LocalDate start = LocalDate.of(year, month, 1);
+            LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+            planPage = staffingPlanService.findByPeriod(start, end, pageable);
+        } else if (actionType != null && !actionType.isEmpty()) {
+            planPage = staffingPlanService.findByActionType(actionType, pageable);
+        } else {
+            planPage = staffingPlanService.findAll(pageable);
+        }
+
+        model.addAttribute("plans", planPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", planPage.getTotalPages());
+        model.addAttribute("totalItems", planPage.getTotalElements());
+        model.addAttribute("size", size);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+        model.addAttribute("selectedYear", year);
+        model.addAttribute("selectedMonth", month);
+        model.addAttribute("selectedActionType", actionType);
+
+        return "staffing-plans/list";
+    }
+
     private List<String> validateRequests(List<StaffingPlanRequest> requests) {
         List<String> errors = new ArrayList<>();
 
@@ -100,11 +144,5 @@ public class StaffingPlanWebController {
         }
 
         return errors;
-    }
-
-    @GetMapping("/list")
-    public String list(Model model) {
-        model.addAttribute("plans", staffingPlanService.findAll());
-        return "staffing-plans/list";
     }
 }

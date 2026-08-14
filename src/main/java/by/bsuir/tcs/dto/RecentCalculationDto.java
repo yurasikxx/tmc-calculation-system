@@ -8,6 +8,7 @@ import lombok.Data;
 public class RecentCalculationDto {
     private String period;
     private String tmcName;
+    private String tmcCode;
     private Integer requiredQuantity;
     private String formattedDate;
 }

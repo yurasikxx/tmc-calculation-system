@@ -37,6 +37,9 @@
                         <a class="nav-link" href="/norms">Нормы</a>
                     </li>
                     <li class="nav-item" sec:authorize="hasRole('MTS')">
+                        <a class="nav-link" href="/staffing-plans/list">Планы</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('MTS')">
                         <a class="nav-link" href="/staffing-plans/upload">Загрузка плана</a>
                     </li>
                     <li class="nav-item" sec:authorize="hasRole('MTS')">

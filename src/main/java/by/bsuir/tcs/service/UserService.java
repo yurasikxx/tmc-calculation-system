@@ -53,6 +53,27 @@ public class UserService implements UserDetailsService {
         return findByUsername(auth.getName());
     }
 
+    @Transactional(readOnly = true)
+    public String getCurrentUserRoleName() {
+        User user = getCurrentUser();
+        if (user == null || user.getRole() == null) {
+            return "ROLE_ANONYMOUS";
+        }
+        return user.getRole().getName();
+    }
+
+    @Transactional(readOnly = true)
+    public String getCurrentUserDisplayName() {
+        User user = getCurrentUser();
+        if (user == null) {
+            return "Гость";
+        }
+        if (user.getEmployee() != null) {
+            return user.getEmployeeFullNameWithInitials();
+        }
+        return user.getUsername();
+    }
+
     public static String getRussianRoleName(String role) {
         return switch (role) {
             case "ROLE_OT" -> "Инженер по охране труда";

@@ -1,6 +1,8 @@
 package by.bsuir.tcs.repository;
 
 import by.bsuir.tcs.entity.StaffingPlan;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,5 +12,10 @@ import java.util.List;
 @Repository
 public interface StaffingPlanRepository extends JpaRepository<StaffingPlan, Long> {
     List<StaffingPlan> findByEmployeeId(Long employeeId);
+
     List<StaffingPlan> findByEffectiveDateBetween(LocalDate start, LocalDate end);
+
+    Page<StaffingPlan> findByEffectiveDateBetween(LocalDate start, LocalDate end, Pageable pageable);
+
+    Page<StaffingPlan> findByActionType(String actionType, Pageable pageable);
 }

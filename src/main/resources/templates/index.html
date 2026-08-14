@@ -15,68 +15,94 @@
 
 <div sec:authorize="isAuthenticated()" class="container-fluid mt-4">
     <div class="row mb-4">
+        <div class="col-12">
+            <h2>Добро пожаловать, <span th:text="${userName}">Пользователь</span>!</h2>
+            <p class="text-muted">
+                <span th:if="${userRole == 'ROLE_ADMIN'}">Вы администратор системы.</span>
+                <span th:if="${userRole == 'ROLE_MTS'}">Вы инженер по МТС. Загружайте кадровые планы и рассчитывайте потребность в ТМЦ.</span>
+                <span th:if="${userRole == 'ROLE_OT'}">Вы инженер по охране труда. Управляйте СИЗ и нормами их выдачи.</span>
+                <span th:if="${userRole == 'ROLE_TECHNOLOG'}">Вы инженер-технолог. Управляйте оснасткой и нормами её выдачи.</span>
+                <span th:if="${userRole == 'ROLE_STOREKEEPER'}">Вы кладовщик ИРК. Управляйте инструментом и нормами его выдачи.</span>
+                <span th:if="${userRole == 'ROLE_LABOR'}">Вы инженер по ОиНТ. Управляйте справочниками профессий и подразделений.</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card bg-primary text-white shadow-sm">
+            <div class="card bg-primary text-white shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-building"></i> Подразделения</h5>
-                    <h3 th:text="${stats.departmentsCount}">0</h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">ТМЦ</h6>
+                            <h3 th:text="${stats.tmcItemsCount}">0</h3>
+                        </div>
+                        <i class="bi bi-boxes display-4 text-white-50"></i>
+                    </div>
+                    <small>всего наименований</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-success text-white shadow-sm">
+            <div class="card bg-success text-white shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-person-workspace"></i> Профессии</h5>
-                    <h3 th:text="${stats.professionsCount}">0</h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Нормы</h6>
+                            <h3 th:text="${stats.normsCount}">0</h3>
+                        </div>
+                        <i class="bi bi-list-check display-4 text-white-50"></i>
+                    </div>
+                    <small>всего установлено</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-info text-white shadow-sm">
+            <div class="card bg-info text-white shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-boxes"></i> ТМЦ</h5>
-                    <h3 th:text="${stats.tmcItemsCount}">0</h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Сотрудники</h6>
+                            <h3 th:text="${stats.employeesCount}">0</h3>
+                        </div>
+                        <i class="bi bi-people display-4 text-white-50"></i>
+                    </div>
+                    <small>всего в штате</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-warning text-dark shadow-sm">
+            <div class="card bg-warning text-dark shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-list-check"></i> Нормы</h5>
-                    <h3 th:text="${stats.normsCount}">0</h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-dark-50">Расчётов</h6>
+                            <h3 th:text="${stats.calculationsCount}">0</h3>
+                        </div>
+                        <i class="bi bi-calculator display-4 text-dark-50"></i>
+                    </div>
+                    <small>всего выполнено</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
+    <div sec:authorize="hasRole('MTS')" class="row mb-4">
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <i class="bi bi-compass"></i> Быстрый доступ
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-gear me-2"></i> Действия
                 </div>
                 <div class="card-body">
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="/departments" class="btn btn-outline-primary">
-                            <i class="bi bi-building"></i> Подразделения
+                        <a href="/staffing-plans/upload" class="btn btn-outline-primary">
+                            <i class="bi bi-upload"></i> Загрузить кадровый план
                         </a>
-                        <a href="/professions" class="btn btn-outline-success">
-                            <i class="bi bi-person-workspace"></i> Профессии
+                        <a href="/staffing-plans/list" class="btn btn-outline-secondary">
+                            <i class="bi bi-list"></i> Просмотр планов
                         </a>
-                        <a href="/employees" class="btn btn-outline-info">
-                            <i class="bi bi-people"></i> Сотрудники
-                        </a>
-                        <a href="/tmc-items" class="btn btn-outline-primary">
-                            <i class="bi bi-boxes"></i> ТМЦ
-                        </a>
-                        <a href="/norms" class="btn btn-outline-warning">
-                            <i class="bi bi-list-check"></i> Нормы
-                        </a>
-                        <a href="/calculations" class="btn btn-outline-danger">
-                            <i class="bi bi-calculator"></i> Расчёт
-                        </a>
-                        <a sec:authorize="hasRole('ADMIN')" href="/users" class="btn btn-outline-secondary">
-                            <i class="bi bi-people-fill"></i> Пользователи
+                        <a href="/calculations" class="btn btn-outline-success">
+                            <i class="bi bi-calculator"></i> Рассчитать потребность
                         </a>
                     </div>
                 </div>
@@ -87,33 +113,42 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <i class="bi bi-clock-history"></i> Последние расчёты
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-clock-history me-2"></i>Последние расчёты</span>
+                    <span class="badge bg-secondary" th:text="${recentCalculations.size()} + ' записей'">0</span>
                 </div>
                 <div class="card-body">
                     <div th:if="${recentCalculations != null and !recentCalculations.isEmpty()}">
-                        <table class="table table-sm">
-                            <thead>
-                            <tr>
-                                <th>Период</th>
-                                <th>ТМЦ</th>
-                                <th>Количество</th>
-                                <th>Дата расчёта</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="calc : ${recentCalculations}">
-                                <td th:text="${calc.period}">06/2026</td>
-                                <td th:text="${calc.tmcName}">Штангенциркуль</td>
-                                <td th:text="${calc.requiredQuantity}">5</td>
-                                <td th:text="${calc.formattedDate}">10.08.2026 14:30</td>
-                            </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                <tr>
+                                    <th>Период</th>
+                                    <th>Код ТМЦ</th>
+                                    <th>Наименование</th>
+                                    <th class="text-end">Количество</th>
+                                    <th>Дата расчёта</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="calc : ${recentCalculations}">
+                                    <td><span class="badge bg-secondary" th:text="${calc.period}">06/2026</span></td>
+                                    <td th:text="${calc.tmcCode}">SIZ-001</td>
+                                    <td th:text="${calc.tmcName}">Штангенциркуль</td>
+                                    <td class="text-end fw-bold" th:text="${calc.requiredQuantity}">5</td>
+                                    <td th:text="${calc.formattedDate}">10.08.2026 14:30</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     <div th:if="${recentCalculations == null or recentCalculations.isEmpty()}">
-                        <p class="text-muted mb-0"><i class="bi bi-info-circle"></i> Расчётов пока нет. <a
-                                href="/calculations">Сделать первый расчёт</a></p>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-info-circle"></i> Расчётов пока нет.
+                            <span sec:authorize="hasRole('MTS')">
+                                <a href="/staffing-plans/upload">Загрузите кадровый план</a> и выполните расчёт.
+                            </span>
+                        </p>
                     </div>
                 </div>
             </div>

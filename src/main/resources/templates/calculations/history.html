@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История расчётов</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>История расчётов</h2>
+        <a href="/calculations" class="btn btn-primary">
+            <i class="bi bi-calculator"></i> Новый расчёт
+        </a>
+    </div>
+
+    <div class="row mb-3 g-2 align-items-end">
+        <div class="col-md-3">
+            <form method="get" id="periodForm">
+                <label class="form-label">Период</label>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <select class="form-select" name="month" onchange="this.form.submit()">
+                            <option value="">Месяц</option>
+                            <option value="1" th:selected="${selectedMonth == 1}">Январь</option>
+                            <option value="2" th:selected="${selectedMonth == 2}">Февраль</option>
+                            <option value="3" th:selected="${selectedMonth == 3}">Март</option>
+                            <option value="4" th:selected="${selectedMonth == 4}">Апрель</option>
+                            <option value="5" th:selected="${selectedMonth == 5}">Май</option>
+                            <option value="6" th:selected="${selectedMonth == 6}">Июнь</option>
+                            <option value="7" th:selected="${selectedMonth == 7}">Июль</option>
+                            <option value="8" th:selected="${selectedMonth == 8}">Август</option>
+                            <option value="9" th:selected="${selectedMonth == 9}">Сентябрь</option>
+                            <option value="10" th:selected="${selectedMonth == 10}">Октябрь</option>
+                            <option value="11" th:selected="${selectedMonth == 11}">Ноябрь</option>
+                            <option value="12" th:selected="${selectedMonth == 12}">Декабрь</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <select class="form-select" name="year" onchange="this.form.submit()">
+                            <option value="">Год</option>
+                            <option value="2024" th:selected="${selectedYear == 2024}">2024</option>
+                            <option value="2025" th:selected="${selectedYear == 2025}">2025</option>
+                            <option value="2026" th:selected="${selectedYear == 2026}">2026</option>
+                            <option value="2027" th:selected="${selectedYear == 2027}">2027</option>
+                            <option value="2028" th:selected="${selectedYear == 2028}">2028</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-2">
+            <form method="get" id="sizeForm">
+                <label for="sizeSelect" class="form-label">Записей</label>
+                <select class="form-select" id="sizeSelect" name="size" onchange="this.form.submit()">
+                    <option value="5" th:selected="${size == 5}">5</option>
+                    <option value="10" th:selected="${size == 10}">10</option>
+                    <option value="25" th:selected="${size == 25}">25</option>
+                    <option value="50" th:selected="${size == 50}">50</option>
+                </select>
+            </form>
+        </div>
+        <div class="col-md-2 text-end">
+            <a href="/calculations/history" class="btn btn-secondary">
+                <i class="bi bi-arrow-counterclockwise"></i> Сбросить
+            </a>
+        </div>
+        <div class="col-md-2 text-end">
+            <span class="text-muted">
+                Всего: <strong th:text="${totalItems}">0</strong>
+            </span>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>Период</th>
+                <th>ТМЦ</th>
+                <th>Код</th>
+                <th class="text-end">Количество</th>
+                <th>Дата расчёта</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="result : ${results}">
+                <td><span class="badge bg-secondary" th:text="${result.periodMonth} + '/' + ${result.periodYear}">06/2026</span>
+                </td>
+                <td th:text="${result.tmcItem.name}">Штангенциркуль</td>
+                <td th:text="${result.tmcItem.code}">И00000001</td>
+                <td class="text-end fw-bold" th:text="${result.requiredQuantity}">5</td>
+                <td th:text="${#temporals.format(result.calculationDate, 'dd.MM.yyyy HH:mm')}">10.08.2026 14:30</td>
+                <td>
+                    <a th:href="@{/calculations/view(year=${result.periodYear}, month=${result.periodMonth})}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> Просмотр
+                    </a>
+                </td>
+            </tr>
+            <tr th:if="${results.isEmpty()}">
+                <td colspan="6" class="text-center text-muted">Нет выполненных расчётов</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav th:if="${totalPages > 0}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                <a class="page-link"
+                   th:href="@{/calculations/history(page=${currentPage - 1}, size=${size}, year=${selectedYear}, month=${selectedMonth})}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                class="page-item" th:classappend="${pageNum == currentPage} ? 'active' : ''">
+                <a class="page-link"
+                   th:href="@{/calculations/history(page=${pageNum}, size=${size}, year=${selectedYear}, month=${selectedMonth})}"
+                   th:text="${pageNum + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+                <a class="page-link"
+                   th:href="@{/calculations/history(page=${currentPage + 1}, size=${size}, year=${selectedYear}, month=${selectedMonth})}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
