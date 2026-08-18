@@ -63,7 +63,7 @@ public class CalculationController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "25") int size,
             Model model) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "calculationDate"));
@@ -101,5 +101,16 @@ public class CalculationController {
         model.addAttribute("groupedByType", groupedByType);
 
         return "calculations/result";
+    }
+
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            calculationResultService.delete(id);
+            redirectAttributes.addFlashAttribute("success", "Расчёт успешно удалён");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении расчёта: " + e.getMessage());
+        }
+        return "redirect:/calculations/history";
     }
 }

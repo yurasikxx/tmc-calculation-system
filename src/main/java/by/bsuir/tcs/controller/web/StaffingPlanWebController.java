@@ -69,7 +69,7 @@ public class StaffingPlanWebController {
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) String actionType,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "25") int size,
             @RequestParam(defaultValue = "effectiveDate") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir,
             Model model) {

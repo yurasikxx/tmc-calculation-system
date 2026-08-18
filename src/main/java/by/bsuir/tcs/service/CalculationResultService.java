@@ -46,4 +46,9 @@ public class CalculationResultService {
     public Page<CalculationResult> findAll(Pageable pageable) {
         return calculationResultRepository.findAll(pageable);
     }
+
+    @Transactional
+    public void delete(Long id) {
+        calculationResultRepository.deleteById(id);
+    }
 }

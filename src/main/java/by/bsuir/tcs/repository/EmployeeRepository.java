@@ -4,6 +4,7 @@ import by.bsuir.tcs.entity.Employee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,4 +19,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByProfessionId(Long professionId);
 
     Page<Employee> findByFullNameContainingIgnoreCase(String fullName, Pageable pageable);
+
+    @Query("SELECT e.department.name, COUNT(e) FROM Employee e GROUP BY e.department.name")
+    List<Object[]> countEmployeesByDepartment();
 }

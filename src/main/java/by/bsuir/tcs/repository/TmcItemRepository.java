@@ -34,4 +34,7 @@ public interface TmcItemRepository extends JpaRepository<TmcItem, Long> {
     List<TmcItem> findAllByOrderByIdDesc();
 
     List<TmcItem> findByTypeNameOrderByIdDesc(String typeName);
+
+    @Query("SELECT t.type.name, COUNT(t) FROM TmcItem t GROUP BY t.type.name")
+    List<Object[]> countByType();
 }

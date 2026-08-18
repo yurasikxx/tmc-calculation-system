@@ -29,6 +29,30 @@ public class DashboardController {
             DashboardStatsDto stats = dashboardService.getStats();
             List<RecentCalculationDto> recentCalculations = dashboardService.getRecentCalculations();
 
+            List<Object[]> employeesByDept = dashboardService.getEmployeesByDepartment();
+            List<String> deptLabels = employeesByDept.stream().map(row -> (String) row[0]).collect(java.util.stream.Collectors.toList());
+            List<Number> deptData = employeesByDept.stream().map(row -> (Long) row[1]).collect(java.util.stream.Collectors.toList());
+
+            List<Object[]> tmcByType = dashboardService.getTmcItemsByType();
+            List<String> tmcLabels = tmcByType.stream()
+                    .map(row -> {
+                        String type = (String) row[0];
+                        return switch (type) {
+                            case "SIZ" -> "СИЗ";
+                            case "TOOL" -> "Инструмент";
+                            case "EQUIPMENT" -> "Оснастка";
+                            default -> type;
+                        };
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            List<Number> tmcData = tmcByType.stream().map(row -> (Long) row[1]).collect(java.util.stream.Collectors.toList());
+
+            List<Object[]> calcByMonth = dashboardService.getCalculationsByMonth();
+            List<String> calcLabels = calcByMonth.stream()
+                    .map(row -> row[1] + "/" + row[0])
+                    .collect(java.util.stream.Collectors.toList());
+            List<Number> calcData = calcByMonth.stream().map(row -> (Long) row[2]).collect(java.util.stream.Collectors.toList());
+
             String role = userService.getCurrentUserRoleName();
             model.addAttribute("stats", stats);
             model.addAttribute("recentCalculations", recentCalculations);
@@ -39,6 +63,13 @@ public class DashboardController {
             model.addAttribute("isOT", "ROLE_OT".equals(role));
             model.addAttribute("isTechnolog", "ROLE_TECHNOLOG".equals(role));
             model.addAttribute("isStorekeeper", "ROLE_STOREKEEPER".equals(role));
+
+            model.addAttribute("deptLabels", deptLabels);
+            model.addAttribute("deptData", deptData);
+            model.addAttribute("tmcLabels", tmcLabels);
+            model.addAttribute("tmcData", tmcData);
+            model.addAttribute("calcLabels", calcLabels);
+            model.addAttribute("calcData", calcData);
         }
 
         return "index";

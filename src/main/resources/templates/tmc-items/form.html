@@ -20,17 +20,18 @@
             <h2 th:if="${tmcItem.id != null}">Редактирование ТМЦ</h2>
 
             <form th:action="${tmcItem.id == null} ? @{/tmc-items/create} : @{/tmc-items/edit/{id}(id=${tmcItem.id})}"
-                  method="post">
+                  method="post" class="needs-validation" novalidate>
 
                 <div class="mb-3">
                     <label for="code" class="form-label">Код</label>
                     <input type="text" class="form-control" id="code" name="code" th:value="${tmcItem.code}" required>
-                    <div class="form-text">Уникальный артикул или внутренний код</div>
+                    <div class="invalid-feedback">Пожалуйста, введите код</div>
                 </div>
 
                 <div class="mb-3">
                     <label for="name" class="form-label">Наименование</label>
                     <input type="text" class="form-control" id="name" name="name" th:value="${tmcItem.name}" required>
+                    <div class="invalid-feedback">Пожалуйста, введите наименование</div>
                 </div>
 
                 <input type="hidden" name="type.id" th:value="${tmcItem.type.id}">
@@ -46,13 +47,13 @@
                         <option th:each="u : ${units}" th:value="${u.id}" th:text="${u.code + ' - ' + u.name}"
                                 th:selected="${tmcItem.unit != null && tmcItem.unit.id == u.id}"></option>
                     </select>
+                    <div class="invalid-feedback">Пожалуйста, выберите единицу измерения</div>
                 </div>
 
                 <div class="mb-3">
                     <label for="serviceLifeMonths" class="form-label">Срок службы (месяцев)</label>
                     <input type="number" class="form-control" id="serviceLifeMonths" name="serviceLifeMonths"
                            th:value="${tmcItem.serviceLifeMonths}" min="1">
-                    <div class="form-text">Оставьте пустым, если срок не ограничен</div>
                 </div>
 
                 <div th:if="${attributeType == 'SIZ'}"
@@ -115,8 +116,12 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Сохранить</button>
-                <a href="/tmc-items" class="btn btn-secondary">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Сохранить
+                </button>
+                <a href="/tmc-items" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Отмена
+                </a>
             </form>
         </div>
     </div>

@@ -6,6 +6,8 @@
     <title th:if="${norm.id == null}">Создание нормы выдачи</title>
     <title th:if="${norm.id != null}">Редактирование нормы выдачи</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
 
@@ -17,7 +19,8 @@
             <h2 th:if="${norm.id == null}">Новая норма выдачи</h2>
             <h2 th:if="${norm.id != null}">Редактирование нормы выдачи</h2>
 
-            <form th:action="${norm.id == null} ? @{/norms/create} : @{/norms/edit/{id}(id=${norm.id})}" method="post">
+            <form th:action="${norm.id == null} ? @{/norms/create} : @{/norms/edit/{id}(id=${norm.id})}"
+                  method="post" class="needs-validation" novalidate>
                 <div class="mb-3">
                     <label for="tmcItem" class="form-label">ТМЦ</label>
                     <select class="form-select" id="tmcItem" name="tmcItem.id" required>
@@ -26,6 +29,7 @@
                                 th:text="${item.code + ' - ' + item.name}"
                                 th:selected="${norm.tmcItem != null && norm.tmcItem.id == item.id}"></option>
                     </select>
+                    <div class="invalid-feedback">Пожалуйста, выберите ТМЦ</div>
                 </div>
 
                 <div class="mb-3">
@@ -35,23 +39,29 @@
                         <option th:each="prof : ${professions}" th:value="${prof.id}" th:text="${prof.name}"
                                 th:selected="${norm.profession != null && norm.profession.id == prof.id}"></option>
                     </select>
+                    <div class="invalid-feedback">Пожалуйста, выберите профессию</div>
                 </div>
 
                 <div class="mb-3">
                     <label for="quantity" class="form-label">Количество</label>
                     <input type="number" class="form-control" id="quantity" name="quantity" th:value="${norm.quantity}"
                            min="1" required>
+                    <div class="invalid-feedback">Пожалуйста, введите количество</div>
                 </div>
 
                 <div class="mb-3">
                     <label for="periodMonths" class="form-label">Период (месяцев)</label>
                     <input type="number" class="form-control" id="periodMonths" name="periodMonths"
                            th:value="${norm.periodMonths}" min="1" required>
-                    <div class="form-text">Например: 24 (на 2 года), 1 (ежемесячно)</div>
+                    <div class="invalid-feedback">Пожалуйста, введите период</div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Сохранить</button>
-                <a href="/norms" class="btn btn-secondary">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Сохранить
+                </button>
+                <a href="/norms" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Отмена
+                </a>
             </form>
         </div>
     </div>

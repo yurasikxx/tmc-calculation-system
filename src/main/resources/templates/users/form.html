@@ -19,11 +19,13 @@
             <h2 th:if="${user.id == null}">Новый пользователь</h2>
             <h2 th:if="${user.id != null}">Редактирование пользователя</h2>
 
-            <form th:action="${user.id == null} ? @{/users/create} : @{/users/edit/{id}(id=${user.id})}" method="post">
+            <form th:action="${user.id == null} ? @{/users/create} : @{/users/edit/{id}(id=${user.id})}"
+                  method="post" class="needs-validation" novalidate>
                 <div class="mb-3">
                     <label for="username" class="form-label">Логин</label>
                     <input type="text" class="form-control" id="username" name="username" th:value="${user.username}"
                            required>
+                    <div class="invalid-feedback">Пожалуйста, введите логин</div>
                 </div>
 
                 <div class="mb-3">
@@ -31,7 +33,9 @@
                         <span th:if="${user.id == null}">Пароль</span>
                         <span th:if="${user.id != null}">Новый пароль (оставьте пустым, чтобы не менять)</span>
                     </label>
-                    <input type="password" class="form-control" id="passwordHash" name="passwordHash">
+                    <input type="password" class="form-control" id="passwordHash" name="passwordHash"
+                           th:required="${user.id == null}">
+                    <div th:if="${user.id == null}" class="invalid-feedback">Пожалуйста, введите пароль</div>
                 </div>
 
                 <div class="mb-3">
@@ -42,16 +46,15 @@
                                 th:value="${role.id}"
                                 th:text="${@userService.getRussianRoleName(role.name)}"
                                 th:selected="${user.role != null && user.role.id == role.id}">
-                            Роль
                         </option>
                     </select>
+                    <div class="invalid-feedback">Пожалуйста, выберите роль</div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Сотрудник (необязательно)</label>
-
                     <div class="row g-2">
-                        <div class="col-6 position-relative">
+                        <div class="col-8 position-relative">
                             <input type="text" class="form-control" id="employeeSearch"
                                    placeholder="Начните вводить ФИО сотрудника"
                                    autocomplete="off">
@@ -59,12 +62,11 @@
                                  style="display: none; z-index: 1000; max-height: 200px; overflow-y: auto; width: 100%;">
                             </div>
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
                             <input type="text" class="form-control" id="selectedEmployeeDisplay"
                                    placeholder="Выбранный сотрудник" readonly>
                         </div>
                     </div>
-
                     <input type="hidden" id="employeeId" name="employeeId"
                            th:value="${user.employee != null ? user.employee.id : ''}">
                     <div class="form-text">Введите ФИО, выберите сотрудника из списка</div>
@@ -86,7 +88,6 @@
     window.employeeData = /*[[${employees}]]*/ [];
     /*]]>*/
 </script>
-
 <script src="/js/employee-search.js"></script>
 
 </body>

@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,5 +50,20 @@ public class DashboardService {
                                 .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Object[]> getEmployeesByDepartment() {
+        return employeeRepository.countEmployeesByDepartment();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Object[]> getTmcItemsByType() {
+        return tmcItemRepository.countByType();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Object[]> getCalculationsByMonth() {
+        return calculationResultRepository.countByMonth();
     }
 }
