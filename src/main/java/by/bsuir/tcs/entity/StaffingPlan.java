@@ -39,6 +39,14 @@ public class StaffingPlan {
     @JoinColumn(name = "new_department_id")
     private Department newDepartment;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "old_profession_id")
+    private Profession oldProfession;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "old_department_id")
+    private Department oldDepartment;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

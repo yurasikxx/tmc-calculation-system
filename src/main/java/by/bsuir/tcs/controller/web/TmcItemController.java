@@ -17,8 +17,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-
 @Controller
 @RequestMapping("/tmc-items")
 @RequiredArgsConstructor
@@ -94,9 +92,18 @@ public class TmcItemController {
         model.addAttribute("attributeType", attributeType);
         model.addAttribute("tmcTypes", tmcTypeService.findAvailableForCurrentUser());
         model.addAttribute("units", unitService.findAll());
-        model.addAttribute("sizAttributes", new SizAttributes());
-        model.addAttribute("toolAttributes", new ToolAttributes());
-        model.addAttribute("equipmentAttributes", new EquipmentAttributes());
+
+        SizAttributes sizAttrs = new SizAttributes();
+        ToolAttributes toolAttrs = new ToolAttributes();
+        EquipmentAttributes equipAttrs = new EquipmentAttributes();
+
+        if ("SIZ".equals(attributeType)) {
+            model.addAttribute("attributes", sizAttrs);
+        } else if ("TOOL".equals(attributeType)) {
+            model.addAttribute("attributes", toolAttrs);
+        } else if ("EQUIPMENT".equals(attributeType)) {
+            model.addAttribute("attributes", equipAttrs);
+        }
 
         return "tmc-items/form";
     }
@@ -144,7 +151,7 @@ public class TmcItemController {
             }
 
             tmcItemService.create(tmcItem, attributes);
-            redirectAttributes.addFlashAttribute("success", "ТМЦ успешно создан");
+            redirectAttributes.addFlashAttribute("success", "ТМЦ успешно создана");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Ошибка при создании ТМЦ: " + e.getMessage());
         }
@@ -220,7 +227,7 @@ public class TmcItemController {
             }
 
             tmcItemService.update(id, tmcItem, attributes);
-            redirectAttributes.addFlashAttribute("success", "ТМЦ успешно обновлён");
+            redirectAttributes.addFlashAttribute("success", "ТМЦ успешно обновлена");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Ошибка при обновлении ТМЦ: " + e.getMessage());
         }
@@ -231,7 +238,7 @@ public class TmcItemController {
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             tmcItemService.delete(id);
-            redirectAttributes.addFlashAttribute("success", "ТМЦ успешно удалён");
+            redirectAttributes.addFlashAttribute("success", "ТМЦ успешно удалена");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Ошибка при удалении ТМЦ: " + e.getMessage());
         }

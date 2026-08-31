@@ -57,7 +57,7 @@ public class DashboardController {
             model.addAttribute("stats", stats);
             model.addAttribute("recentCalculations", recentCalculations);
             model.addAttribute("userRole", role);
-            model.addAttribute("userName", userService.getCurrentUserDisplayName());
+            model.addAttribute("userName", userService.getCurrentUserFullName());
             model.addAttribute("isAdmin", "ROLE_ADMIN".equals(role));
             model.addAttribute("isMTS", "ROLE_MTS".equals(role));
             model.addAttribute("isOT", "ROLE_OT".equals(role));

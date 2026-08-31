@@ -74,6 +74,15 @@ public class UserService implements UserDetailsService {
         return user.getUsername();
     }
 
+    @Transactional(readOnly = true)
+    public String getCurrentUserFullName() {
+        User user = getCurrentUser();
+        if (user == null || user.getEmployee() == null) {
+            return "Гость";
+        }
+        return user.getEmployee().getFullName();
+    }
+
     public static String getRussianRoleName(String role) {
         return switch (role) {
             case "ROLE_OT" -> "Инженер по охране труда";

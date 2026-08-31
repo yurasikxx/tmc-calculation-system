@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: {font: {size: 10}}
+                            labels: {font: {size: 12}}
                         }
                     }
                 }

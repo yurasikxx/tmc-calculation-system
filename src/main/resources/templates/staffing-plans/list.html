@@ -135,6 +135,7 @@
                         <i th:if="${sortBy == 'newDepartment.name'}" th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
                     </a>
                 </th>
+                <th style="width: 100px;">Действия</th>
             </tr>
             </thead>
             <tbody>
@@ -156,6 +157,14 @@
                     <span th:if="${plan.actionType == 'HIRE'}" th:text="${plan.newDepartment != null ? plan.newDepartment.name : '-'}">Цех №3</span>
                     <span th:if="${plan.actionType == 'TRANSFER'}" th:text="${plan.newDepartment != null ? plan.newDepartment.name : plan.employee.department.name}">Цех №3</span>
                     <span th:if="${plan.actionType == 'TERMINATE'}" th:text="${plan.employee.department.name}">Цех №3</span>
+                </td>
+                <td>
+                    <form th:action="@{/staffing-plans/delete/{id}(id=${plan.id})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('Удалить эту запись? Изменения будут откачены!')" title="Удалить">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
             <tr th:if="${plans.isEmpty()}">

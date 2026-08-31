@@ -1,7 +1,11 @@
 package by.bsuir.tcs.controller.web;
 
 import by.bsuir.tcs.dto.StaffingPlanRequest;
+import by.bsuir.tcs.entity.Department;
+import by.bsuir.tcs.entity.Employee;
+import by.bsuir.tcs.entity.Profession;
 import by.bsuir.tcs.entity.StaffingPlan;
+import by.bsuir.tcs.service.EmployeeService;
 import by.bsuir.tcs.service.StaffingPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +30,7 @@ import java.util.List;
 public class StaffingPlanWebController {
 
     private final StaffingPlanService staffingPlanService;
+    private final EmployeeService employeeService;
     private final ObjectMapper objectMapper;
 
     @GetMapping("/upload")
@@ -100,6 +105,46 @@ public class StaffingPlanWebController {
         model.addAttribute("selectedActionType", actionType);
 
         return "staffing-plans/list";
+    }
+
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            StaffingPlan plan = staffingPlanService.findById(id);
+            Employee employee = plan.getEmployee();
+
+            if ("HIRE".equals(plan.getActionType())) {
+                List<StaffingPlan> otherPlans = staffingPlanService.findByEmployee(employee.getId());
+                if (otherPlans.size() <= 1) {
+                    employeeService.delete(employee.getId());
+                    redirectAttributes.addFlashAttribute("success",
+                            "Сотрудник " + employee.getFullName() + " удалён");
+                } else {
+                    redirectAttributes.addFlashAttribute("warning",
+                            "Сотрудник " + employee.getFullName() + " не удалён (есть другие записи)");
+                }
+            } else if ("TRANSFER".equals(plan.getActionType())) {
+                if (plan.getOldProfession() != null) {
+                    employee.setProfession(plan.getOldProfession());
+                }
+                if (plan.getOldDepartment() != null) {
+                    employee.setDepartment(plan.getOldDepartment());
+                }
+                employeeService.update(employee.getId(), employee);
+                redirectAttributes.addFlashAttribute("success",
+                        "Перевод " + employee.getFullName() + " отменён");
+            } else if ("TERMINATE".equals(plan.getActionType())) {
+                employee.setTerminationDate(null);
+                employeeService.update(employee.getId(), employee);
+                redirectAttributes.addFlashAttribute("success",
+                        "Увольнение " + employee.getFullName() + " отменено");
+            }
+
+            staffingPlanService.delete(id);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении: " + e.getMessage());
+        }
+        return "redirect:/staffing-plans/list";
     }
 
     private List<String> validateRequests(List<StaffingPlanRequest> requests) {

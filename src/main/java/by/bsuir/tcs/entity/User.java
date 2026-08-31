@@ -59,4 +59,11 @@ public class User {
         }
         return fullName;
     }
+
+    public String getEmployeeFullName() {
+        if (employee == null) {
+            return username;
+        }
+        return employee.getFullName();
+    }
 }

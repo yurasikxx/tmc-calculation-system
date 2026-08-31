@@ -16,7 +16,7 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <h2 th:if="${tmcItem.id == null}">Новый ТМЦ</h2>
+            <h2 th:if="${tmcItem.id == null}">Новая ТМЦ</h2>
             <h2 th:if="${tmcItem.id != null}">Редактирование ТМЦ</h2>
 
             <form th:action="${tmcItem.id == null} ? @{/tmc-items/create} : @{/tmc-items/edit/{id}(id=${tmcItem.id})}"

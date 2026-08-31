@@ -20,29 +20,6 @@
                     <h4 class="mb-0"><i class="bi bi-upload me-2"></i>Загрузка кадрового плана</h4>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">
-                        Загрузите JSON-файл с кадровым планом. Формат:
-                    </p>
-                    <pre class="bg-light p-3 rounded" style="font-size: 0.8rem;">
-                        [
-                            {
-                            "fullName": "Иванов Иван Иванович",
-                            "professionName": "Токарь",
-                            "departmentName": "Цех №3",
-                            "actionType": "HIRE",
-                            "effectiveDate": "2026-08-01"
-                            },
-                            {
-                            "fullName": "Петров Петр Петрович",
-                            "professionName": "Слесарь механосборочных работ",
-                            "departmentName": "Цех №5",
-                            "actionType": "TRANSFER",
-                            "effectiveDate": "2026-08-15",
-                            "newDepartmentName": "Цех №3"
-                            }
-                        ]
-                    </pre>
-
                     <form th:action="@{/staffing-plans/upload}" method="post" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="file" class="form-label">Выберите JSON-файл</label>

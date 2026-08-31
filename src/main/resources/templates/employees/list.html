@@ -100,6 +100,14 @@
                            th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
                     </a>
                 </th>
+                <th>
+                    <a th:href="@{/employees(page=${currentPage}, size=${size}, sortBy='terminationDate', sortDir=${reverseSortDir}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        Дата увольнения
+                        <i th:if="${sortBy == 'terminationDate'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
                 <th style="width: 200px;">Действия</th>
             </tr>
             </thead>
@@ -110,6 +118,7 @@
                 <td th:text="${emp.profession.name}">Токарь</td>
                 <td th:text="${emp.department.name}">Цех №3</td>
                 <td th:text="${#temporals.format(emp.hireDate, 'dd.MM.yyyy')}">15.08.2026</td>
+                <td th:text="${#temporals.format(emp.terminationDate, 'dd.MM.yyyy')}">15.08.2027</td>
                 <td>
                     <a th:href="@{/employees/edit/{id}(id=${emp.id})}" class="btn btn-sm btn-warning">
                         <i class="bi bi-pencil"></i>

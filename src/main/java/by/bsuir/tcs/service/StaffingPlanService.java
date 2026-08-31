@@ -28,26 +28,56 @@ public class StaffingPlanService {
     @Transactional
     public List<StaffingPlan> importPlan(List<StaffingPlanRequest> requests) {
         List<StaffingPlan> savedPlans = new ArrayList<>();
+        List<String> skipped = new ArrayList<>();
 
         for (StaffingPlanRequest request : requests) {
-            Employee employee = findOrCreateEmployee(request);
+            if (!isProductionProfession(request.getProfessionName())) {
+                skipped.add(request.getFullName() + " (не производственная профессия: " + request.getProfessionName() + ")");
+                continue;
+            }
+
+            Employee employee = employeeService.findByFullName(request.getFullName());
+
+            if (employee != null && employee.getTerminationDate() != null) {
+                skipped.add(request.getFullName() + " (уволен " + employee.getTerminationDate() + ")");
+                continue;
+            }
+
+            if (employee != null && "HIRE".equals(request.getActionType())) {
+                skipped.add(request.getFullName() + " (уже работает с " + employee.getHireDate() + ")");
+                continue;
+            }
+
+            if (employee == null && "HIRE".equals(request.getActionType())) {
+                Profession profession = getProfessionByName(request.getProfessionName());
+                Department department = getDepartmentByName(request.getDepartmentName());
+                employee = createNewEmployee(request, profession, department);
+            }
+
+            if (employee == null && !"HIRE".equals(request.getActionType())) {
+                throw new RuntimeException("Сотрудник " + request.getFullName() + " не найден для действия " + request.getActionType());
+            }
+
             StaffingPlan plan = createStaffingPlan(employee, request);
             savedPlans.add(staffingPlanRepository.save(plan));
+        }
+
+        if (!skipped.isEmpty()) {
+            System.out.println("Пропущено событий: " + String.join("; ", skipped));
         }
 
         return savedPlans;
     }
 
-    private Employee findOrCreateEmployee(StaffingPlanRequest request) {
-        Employee employee = employeeService.findByFullName(request.getFullName());
-
-        if (employee == null) {
-            Profession profession = getProfessionByName(request.getProfessionName());
-            Department department = getDepartmentByName(request.getDepartmentName());
-            employee = createNewEmployee(request, profession, department);
-        }
-
-        return employee;
+    private boolean isProductionProfession(String professionName) {
+        List<String> nonProductionProfessions = List.of(
+                "Инженер-технолог",
+                "Инженер по охране труда",
+                "Кладовщик ИРК",
+                "Инженер по МТС",
+                "Инженер по организации и нормированию труда"
+        );
+        return nonProductionProfessions.stream().noneMatch(professionName::contains);
     }
 
     private Employee createNewEmployee(StaffingPlanRequest request, Profession profession, Department department) {
@@ -70,34 +100,37 @@ public class StaffingPlanService {
             builder.newProfession(employee.getProfession());
             builder.newDepartment(employee.getDepartment());
         } else if ("TRANSFER".equals(request.getActionType())) {
-            handleTransfer(employee, request, builder);
+            // Сохраняем старые значения до обновления
+            builder.oldProfession(employee.getProfession());
+            builder.oldDepartment(employee.getDepartment());
+
+            Profession newProfession = null;
+            Department newDepartment = null;
+
+            if (request.getNewProfessionName() != null && !request.getNewProfessionName().isEmpty()) {
+                newProfession = getProfessionByName(request.getNewProfessionName());
+                employee.setProfession(newProfession);
+            }
+
+            if (request.getNewDepartmentName() != null && !request.getNewDepartmentName().isEmpty()) {
+                newDepartment = getDepartmentByName(request.getNewDepartmentName());
+                employee.setDepartment(newDepartment);
+            }
+
+            if (newProfession != null || newDepartment != null) {
+                employeeService.update(employee.getId(), employee);
+                builder.newProfession(newProfession);
+                builder.newDepartment(newDepartment);
+            }
         } else if ("TERMINATE".equals(request.getActionType())) {
+            if (employee.getTerminationDate() != null) {
+                throw new RuntimeException("Сотрудник " + employee.getFullName() + " уже уволен " + employee.getTerminationDate());
+            }
             employee.setTerminationDate(request.getEffectiveDate());
             employeeService.update(employee.getId(), employee);
         }
 
         return builder.build();
-    }
-
-    private void handleTransfer(Employee employee, StaffingPlanRequest request, StaffingPlan.StaffingPlanBuilder builder) {
-        Profession newProfession = null;
-        Department newDepartment = null;
-
-        if (request.getNewProfessionName() != null && !request.getNewProfessionName().isEmpty()) {
-            newProfession = getProfessionByName(request.getNewProfessionName());
-            employee.setProfession(newProfession);
-        }
-
-        if (request.getNewDepartmentName() != null && !request.getNewDepartmentName().isEmpty()) {
-            newDepartment = getDepartmentByName(request.getNewDepartmentName());
-            employee.setDepartment(newDepartment);
-        }
-
-        if (newProfession != null || newDepartment != null) {
-            employeeService.update(employee.getId(), employee);
-            builder.newProfession(newProfession);
-            builder.newDepartment(newDepartment);
-        }
     }
 
     private Profession getProfessionByName(String name) {
@@ -143,5 +176,21 @@ public class StaffingPlanService {
     @Transactional(readOnly = true)
     public List<StaffingPlan> findByPeriod(LocalDate start, LocalDate end) {
         return staffingPlanRepository.findByEffectiveDateBetween(start, end);
+    }
+
+    @Transactional(readOnly = true)
+    public StaffingPlan findById(Long id) {
+        return staffingPlanRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Запись плана не найдена"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<StaffingPlan> findByEmployee(Long employeeId) {
+        return staffingPlanRepository.findByEmployeeId(employeeId);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        staffingPlanRepository.deleteById(id);
     }
 }
