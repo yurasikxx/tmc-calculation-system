@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат прогноза</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Прогноз для: <span th:text="${tmcName}">ТМЦ</span></h2>
+        <a href="/forecast" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Новый прогноз</a>
+    </div>
+
+    <div class="alert alert-info">
+        Использованный метод: <strong th:text="${method}">ARIMA</strong>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Шаг (месяц)</th>
+                    <th>Прогноз</th>
+                    <th>Мин.</th>
+                    <th>Макс.</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="point : ${forecast}">
+                    <td th:text="${point.step}">1</td>
+                    <td class="fw-bold" th:text="${point.value}">10.5</td>
+                    <td th:text="${point.lowerBound}">8.0</td>
+                    <td th:text="${point.upperBound}">12.0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-7">
+            <canvas id="forecastChart" style="max-height: 400px;"></canvas>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const labels = /*[[${forecast.![#this.step]}]]*/ [];
+    const values = /*[[${forecast.![#this.value]}]]*/ [];
+    const lower = /*[[${forecast.![#this.lowerBound]}]]*/ [];
+    const upper = /*[[${forecast.![#this.upperBound]}]]*/ [];
+
+    const ctx = document.getElementById('forecastChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.map(l => 'Месяц ' + l),
+            datasets: [
+                {
+                    label: 'Прогноз',
+                    data: values,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.1
+                },
+                {
+                    label: 'Нижняя граница',
+                    data: lower,
+                    borderColor: '#dc3545',
+                    borderDash: [5, 5],
+                    fill: false
+                },
+                {
+                    label: 'Верхняя граница',
+                    data: upper,
+                    borderColor: '#198754',
+                    borderDash: [5, 5],
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {legend: {position: 'bottom'}}
+        }
+    });
+</script>
+</body>
+</html>

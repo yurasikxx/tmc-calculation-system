@@ -9,4 +9,5 @@
     <include file="v2/insert-data.sql" relativeToChangelogFile="true"/>
     <include file="v3/add-old-fields-to-staffing-plans.sql" relativeToChangelogFile="true"/>
     <include file="v4/add-issued-items.sql" relativeToChangelogFile="true"/>
+    <include file="v5/insert-calc-history.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

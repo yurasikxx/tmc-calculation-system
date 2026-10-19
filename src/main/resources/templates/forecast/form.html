@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Прогнозирование потребности</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-graph-up-arrow me-2"></i>Прогноз потребности в ТМЦ</h4>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/forecast/run}" method="post" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="tmcItemId" class="form-label">ТМЦ</label>
+                            <select class="form-select" id="tmcItemId" name="tmcItemId" required>
+                                <option value="">Выберите ТМЦ</option>
+                                <option th:each="item : ${tmcItems}" th:value="${item.id}"
+                                        th:text="${item.code + ' - ' + item.name}"></option>
+                            </select>
+                            <div class="invalid-feedback">Выберите ТМЦ</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="steps" class="form-label">Горизонт прогноза (мес.)</label>
+                            <input type="number" class="form-control" id="steps" name="steps" value="3" min="1" max="12"
+                                   required>
+                            <div class="invalid-feedback">Укажите количество месяцев</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-play-fill"></i> Спрогнозировать
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

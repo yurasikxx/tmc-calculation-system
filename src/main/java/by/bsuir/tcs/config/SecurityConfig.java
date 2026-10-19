@@ -1,5 +1,6 @@
-package by.bsuir.tcs.config.security;
+package by.bsuir.tcs.config;
 
+import by.bsuir.tcs.config.security.CustomAuthenticationFailureHandler;
 import by.bsuir.tcs.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,18 +27,23 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index", "/login", "/css/**", "/js/**", "/images/**", "/webjars/**")
-                        .permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/index",
+                                "/login",
+                                "/error",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/webjars/**"
+                        ).permitAll()
                         .requestMatchers("/departments/**", "/professions/**").hasAnyRole("LABOR", "ADMIN")
-                        .requestMatchers("/employees/**").hasAnyRole("LABOR", "ADMIN", "MTS")
-                        .requestMatchers("/tmc-items/siz/**").hasRole("OT")
-                        .requestMatchers("/tmc-items/tool/**").hasRole("STOREKEEPER")
-                        .requestMatchers("/tmc-items/equipment/**").hasRole("TECHNOLOG")
-                        .requestMatchers("/norms/siz/**").hasRole("OT")
-                        .requestMatchers("/norms/tool/**").hasRole("STOREKEEPER")
-                        .requestMatchers("/norms/equipment/**").hasRole("TECHNOLOG")
-                        .requestMatchers("/calculations/**", "/api/**").hasRole("MTS")
-                        .requestMatchers("/staffing-plans/**").hasRole("MTS")
+                        .requestMatchers("/employees/**").hasAnyRole("LABOR", "MTS", "ADMIN")
+                        .requestMatchers("/tmc-items/**").hasAnyRole("OT", "TECHNOLOG", "STOREKEEPER", "ADMIN")
+                        .requestMatchers("/norms/**").hasAnyRole("OT", "TECHNOLOG", "STOREKEEPER", "ADMIN")
+                        .requestMatchers("/issued-items/**").hasAnyRole("STOREKEEPER", "ADMIN")
+                        .requestMatchers("/staffing-plans/**", "/calculations/**", "/forecast/**").hasAnyRole("MTS", "ADMIN")
+                        .requestMatchers("/api/reports/**").hasAnyRole("MTS", "ADMIN")
                         .requestMatchers("/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,4 +22,7 @@ public interface CalculationResultRepository extends JpaRepository<CalculationRe
 
     @Query("SELECT c.periodYear, c.periodMonth, COUNT(c) FROM CalculationResult c GROUP BY c.periodYear, c.periodMonth ORDER BY c.periodYear, c.periodMonth")
     List<Object[]> countByMonth();
+
+    @Query("SELECT c FROM CalculationResult c WHERE c.tmcItem.id = :tmcId ORDER BY c.periodYear ASC, c.periodMonth ASC")
+    List<CalculationResult> findHistoryByTmcId(@Param("tmcId") Long tmcId);
 }
