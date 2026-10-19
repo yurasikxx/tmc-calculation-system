@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выданные ТМЦ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Выданные ТМЦ (в эксплуатации)</h2>
+        <a href="/issued-items/issue" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Выдать ТМЦ
+        </a>
+    </div>
+
+    <div class="row mb-3 g-2 align-items-end">
+        <div class="col-md-3">
+            <form method="get">
+                <label class="form-label">Статус</label>
+                <select class="form-select" name="status" onchange="this.form.submit()">
+                    <option value="">Все</option>
+                    <option value="ISSUED" th:selected="${selectedStatus == 'ISSUED'}">В эксплуатации</option>
+                    <option value="RETURNED" th:selected="${selectedStatus == 'RETURNED'}">Возвращено</option>
+                    <option value="WRITTEN_OFF" th:selected="${selectedStatus == 'WRITTEN_OFF'}">Списано</option>
+                </select>
+            </form>
+        </div>
+        <div class="col-md-3">
+            <form method="get">
+                <label class="form-label">Тип ТМЦ</label>
+                <select class="form-select" name="tmcType" onchange="this.form.submit()">
+                    <option value="">Все</option>
+                    <option value="SIZ" th:selected="${selectedTmcType == 'SIZ'}">СИЗ</option>
+                    <option value="TOOL" th:selected="${selectedTmcType == 'TOOL'}">Инструмент</option>
+                    <option value="EQUIPMENT" th:selected="${selectedTmcType == 'EQUIPMENT'}">Оснастка</option>
+                </select>
+            </form>
+        </div>
+        <div class="col-md-2 text-end">
+            <a href="/issued-items" class="btn btn-secondary">Сбросить</a>
+        </div>
+        <div class="col-md-2 text-end">
+            <span class="text-muted">Всего: <strong th:text="${totalItems}">0</strong></span>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Сотрудник</th>
+                <th>ТМЦ</th>
+                <th>Кол-во</th>
+                <th>Дата выдачи</th>
+                <th>Срок службы до</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${items}">
+                <td th:text="${item.id}">1</td>
+                <td th:text="${item.employee.fullName}">Иванов И.И.</td>
+                <td th:text="${item.tmcItem.name}">Каска</td>
+                <td th:text="${item.quantity}">1</td>
+                <td th:text="${#temporals.format(item.issueDate, 'dd.MM.yyyy')}">01.01.2026</td>
+                <td th:text="${#temporals.format(item.expectedReturnDate, 'dd.MM.yyyy')}">01.01.2028</td>
+                <td>
+                    <span th:if="${item.status == 'ISSUED'}" class="badge bg-success">В эксплуатации</span>
+                    <span th:if="${item.status == 'RETURNED'}" class="badge bg-secondary">Возвращено</span>
+                    <span th:if="${item.status == 'WRITTEN_OFF'}" class="badge bg-danger">Списано</span>
+                </td>
+                <td>
+                    <form th:if="${item.status == 'ISSUED'}" th:action="@{/issued-items/return/{id}(id=${item.id})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-outline-primary"
+                                onclick="return confirm('Вернуть ТМЦ?')">Вернуть
+                        </button>
+                    </form>
+                    <form th:if="${item.status == 'ISSUED'}" th:action="@{/issued-items/write-off/{id}(id=${item.id})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('Списать ТМЦ?')">Списать
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${items.isEmpty()}">
+                <td colspan="8" class="text-center text-muted">Нет выданных ТМЦ</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav th:if="${totalPages > 0}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                <a class="page-link"
+                   th:href="@{/issued-items(page=${currentPage - 1}, status=${selectedStatus}, tmcType=${selectedTmcType})}">Назад</a>
+            </li>
+            <li class="page-item" th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${p == currentPage} ? 'active' : ''">
+                <a class="page-link"
+                   th:href="@{/issued-items(page=${p}, status=${selectedStatus}, tmcType=${selectedTmcType})}"
+                   th:text="${p + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+                <a class="page-link"
+                   th:href="@{/issued-items(page=${currentPage + 1}, status=${selectedStatus}, tmcType=${selectedTmcType})}">Вперёд</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+</body>
+</html>
