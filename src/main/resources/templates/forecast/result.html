@@ -12,38 +12,80 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Прогноз для: <span th:text="${tmcName}">ТМЦ</span></h2>
-        <a href="/forecast" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Новый прогноз</a>
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h2 class="mb-1">Прогноз для: <span th:text="${tmcName}">ТМЦ</span></h2>
+            <small class="text-muted">
+                Модель: <span class="badge bg-secondary" th:text="${method}">ARIMA</span>
+                · Горизонт: <span th:text="${steps}">3</span> мес.
+            </small>
+        </div>
+        <div>
+            <a th:href="@{/forecast/export(tmcId=${tmcId}, steps=${steps})}"
+               class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Экспорт
+            </a>
+            <a href="/forecast" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Новый прогноз
+            </a>
+        </div>
     </div>
 
-    <div class="alert alert-info">
-        Использованный метод: <strong th:text="${method}">ARIMA</strong>
+    <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-lightbulb fs-3 me-3"></i>
+        <div>
+            <h5 class="alert-heading mb-1">Рекомендация к закупке</h5>
+            <p class="mb-0">
+                Рекомендуется закупить <strong th:text="${recommendedQuantity}">0</strong> ед.
+                ТМЦ «<span th:text="${tmcName}">ТМЦ</span>» в течение ближайших
+                <strong th:text="${steps}">3</strong> месяцев.
+            </p>
+        </div>
     </div>
 
     <div class="row">
         <div class="col-md-5">
-            <table class="table table-bordered">
-                <thead>
-                <tr>
-                    <th>Шаг (месяц)</th>
-                    <th>Прогноз</th>
-                    <th>Мин.</th>
-                    <th>Макс.</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="point : ${forecast}">
-                    <td th:text="${point.step}">1</td>
-                    <td class="fw-bold" th:text="${point.value}">10.5</td>
-                    <td th:text="${point.lowerBound}">8.0</td>
-                    <td th:text="${point.upperBound}">12.0</td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <i class="bi bi-table me-2"></i>Детализация прогноза
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th>Месяц</th>
+                            <th class="text-end">Прогноз</th>
+                            <th class="text-end">Мин.</th>
+                            <th class="text-end">Макс.</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="point : ${forecast}">
+                            <td th:text="'Месяц ' + ${point.step}">1</td>
+                            <td class="fw-bold text-end"
+                                th:text="${#numbers.formatDecimal(point.value, 1, 2, 'COMMA')}">10.50
+                            </td>
+                            <td class="text-end text-muted"
+                                th:text="${#numbers.formatDecimal(point.lowerBound, 1, 2, 'COMMA')}">8.00
+                            </td>
+                            <td class="text-end text-muted"
+                                th:text="${#numbers.formatDecimal(point.upperBound, 1, 2, 'COMMA')}">12.00
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
         <div class="col-md-7">
-            <canvas id="forecastChart" style="max-height: 400px;"></canvas>
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <i class="bi bi-graph-up me-2"></i>График прогноза
+                </div>
+                <div class="card-body">
+                    <canvas id="forecastChart" style="max-height: 350px;"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -64,29 +106,34 @@
                     label: 'Прогноз',
                     data: values,
                     borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.15)',
                     fill: true,
-                    tension: 0.1
+                    tension: 0.3,
+                    borderWidth: 3
                 },
                 {
-                    label: 'Нижняя граница',
+                    label: 'Мин.',
                     data: lower,
                     borderColor: '#dc3545',
                     borderDash: [5, 5],
-                    fill: false
+                    fill: false,
+                    borderWidth: 1
                 },
                 {
-                    label: 'Верхняя граница',
+                    label: 'Макс.',
                     data: upper,
                     borderColor: '#198754',
                     borderDash: [5, 5],
-                    fill: false
+                    fill: false,
+                    borderWidth: 1
                 }
             ]
         },
         options: {
             responsive: true,
-            plugins: {legend: {position: 'bottom'}}
+            maintainAspectRatio: false,
+            plugins: {legend: {position: 'bottom'}},
+            scales: {y: {beginAtZero: true}}
         }
     });
 </script>

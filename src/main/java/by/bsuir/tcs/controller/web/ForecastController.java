@@ -1,5 +1,6 @@
 package by.bsuir.tcs.controller.web;
 
+import by.bsuir.tcs.dto.forecast.ForecastPoint;
 import by.bsuir.tcs.dto.forecast.ForecastResponse;
 import by.bsuir.tcs.service.ForecastService;
 import by.bsuir.tcs.service.TmcItemService;
@@ -38,6 +39,12 @@ public class ForecastController {
             model.addAttribute("method", response.getMethod());
             model.addAttribute("tmcName", tmcItemService.findById(tmcItemId).getName());
             model.addAttribute("steps", steps);
+
+            double total = response.getForecast().stream()
+                    .mapToDouble(ForecastPoint::getValue)
+                    .sum();
+            model.addAttribute("recommendedQuantity", Math.round(total));
+
             return "forecast/result";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
