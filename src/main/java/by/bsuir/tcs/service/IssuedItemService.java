@@ -26,8 +26,17 @@ public class IssuedItemService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public Page<IssuedItem> findAllWithFilters(String status, String tmcType, Pageable pageable) {
-        return issuedItemRepository.findAllWithFilters(status, tmcType, pageable);
+    public Page<IssuedItem> findAllWithFilters(
+            String status, String tmcType, String search, Pageable pageable) {
+
+        String statusFilter = (status == null || status.isBlank()) ? null : status;
+        String typeFilter = (tmcType == null || tmcType.isBlank()) ? null : tmcType;
+        String searchFilter = (search == null || search.isBlank()) ? null
+                : "%" + search.toLowerCase().trim() + "%";
+
+        return issuedItemRepository.findAllFiltered(
+                statusFilter, typeFilter, searchFilter, pageable
+        );
     }
 
     @Transactional(readOnly = true)

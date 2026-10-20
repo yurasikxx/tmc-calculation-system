@@ -32,6 +32,11 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
+    public List<Employee> findAllActive() {
+        return employeeRepository.findByTerminationDateIsNullOrderByFullName();
+    }
+
+    @Transactional(readOnly = true)
     public Page<Employee> findBySearch(String search, Pageable pageable) {
         return employeeRepository.findByFullNameContainingIgnoreCase(search, pageable);
     }

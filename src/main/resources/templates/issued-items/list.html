@@ -13,6 +13,16 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container-fluid mt-4">
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i><span th:text="${success}">OK</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}">Ошибка</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Выданные ТМЦ (в эксплуатации)</h2>
         <a href="/issued-items/issue" class="btn btn-primary">
@@ -20,9 +30,14 @@
         </a>
     </div>
 
+    <!-- ФИЛЬТРЫ -->
     <div class="row mb-3 g-2 align-items-end">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <form method="get">
+                <input type="hidden" name="size" th:value="${size}">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="sortDir" th:value="${sortDir}">
+                <input type="hidden" name="search" th:value="${searchQuery}">
                 <label class="form-label">Статус</label>
                 <select class="form-select" name="status" onchange="this.form.submit()">
                     <option value="">Все</option>
@@ -32,8 +47,13 @@
                 </select>
             </form>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <form method="get">
+                <input type="hidden" name="size" th:value="${size}">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="sortDir" th:value="${sortDir}">
+                <input type="hidden" name="status" th:value="${selectedStatus}">
+                <input type="hidden" name="search" th:value="${searchQuery}">
                 <label class="form-label">Тип ТМЦ</label>
                 <select class="form-select" name="tmcType" onchange="this.form.submit()">
                     <option value="">Все</option>
@@ -43,34 +63,122 @@
                 </select>
             </form>
         </div>
-        <div class="col-md-2 text-end">
-            <a href="/issued-items" class="btn btn-secondary">Сбросить</a>
+        <div class="col-md-3">
+            <form method="get">
+                <input type="hidden" name="size" th:value="${size}">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="sortDir" th:value="${sortDir}">
+                <input type="hidden" name="status" th:value="${selectedStatus}">
+                <input type="hidden" name="tmcType" th:value="${selectedTmcType}">
+                <label class="form-label">Поиск</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="search"
+                           placeholder="ФИО, код или название" th:value="${searchQuery}">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-2">
+            <form method="get">
+                <input type="hidden" name="status" th:value="${selectedStatus}">
+                <input type="hidden" name="tmcType" th:value="${selectedTmcType}">
+                <input type="hidden" name="search" th:value="${searchQuery}">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="sortDir" th:value="${sortDir}">
+                <label class="form-label">Записей</label>
+                <select class="form-select" name="size" onchange="this.form.submit()">
+                    <option value="5" th:selected="${size == 5}">5</option>
+                    <option value="10" th:selected="${size == 10}">10</option>
+                    <option value="25" th:selected="${size == 25}">25</option>
+                    <option value="50" th:selected="${size == 50}">50</option>
+                </select>
+            </form>
+        </div>
+        <div class="col-md-1">
+            <a href="/issued-items" class="btn btn-secondary">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </a>
         </div>
         <div class="col-md-2 text-end">
             <span class="text-muted">Всего: <strong th:text="${totalItems}">0</strong></span>
         </div>
     </div>
 
+    <!-- ТАБЛИЦА -->
     <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-striped table-hover align-middle">
             <thead>
             <tr>
-                <th>ID</th>
-                <th>Сотрудник</th>
-                <th>ТМЦ</th>
-                <th>Кол-во</th>
-                <th>Дата выдачи</th>
-                <th>Срок службы до</th>
-                <th>Статус</th>
-                <th>Действия</th>
+                <th>
+                    <a th:href="@{/issued-items(page=${currentPage}, size=${size}, sortBy='id', sortDir=${reverseSortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        ID
+                        <i th:if="${sortBy == 'id'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/issued-items(page=${currentPage}, size=${size}, sortBy='employee.fullName', sortDir=${reverseSortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        Сотрудник
+                        <i th:if="${sortBy == 'employee.fullName'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/issued-items(page=${currentPage}, size=${size}, sortBy='tmcItem.name', sortDir=${reverseSortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        ТМЦ
+                        <i th:if="${sortBy == 'tmcItem.name'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th class="text-end">
+                    <a th:href="@{/issued-items(page=${currentPage}, size=${size}, sortBy='quantity', sortDir=${reverseSortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        Кол-во
+                        <i th:if="${sortBy == 'quantity'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/issued-items(page=${currentPage}, size=${size}, sortBy='issueDate', sortDir=${reverseSortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        Дата выдачи
+                        <i th:if="${sortBy == 'issueDate'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/issued-items(page=${currentPage}, size=${size}, sortBy='expectedReturnDate', sortDir=${reverseSortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        Срок службы до
+                        <i th:if="${sortBy == 'expectedReturnDate'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/issued-items(page=${currentPage}, size=${size}, sortBy='status', sortDir=${reverseSortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}"
+                       class="text-decoration-none text-dark">
+                        Статус
+                        <i th:if="${sortBy == 'status'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th style="width: 180px;">Действия</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="item : ${items}">
                 <td th:text="${item.id}">1</td>
                 <td th:text="${item.employee.fullName}">Иванов И.И.</td>
-                <td th:text="${item.tmcItem.name}">Каска</td>
-                <td th:text="${item.quantity}">1</td>
+                <td>
+                    <span th:text="${item.tmcItem.code}">С00000001</span> —
+                    <span th:text="${item.tmcItem.name}">Каска</span>
+                </td>
+                <td class="text-end" th:text="${item.quantity}">1</td>
                 <td th:text="${#temporals.format(item.issueDate, 'dd.MM.yyyy')}">01.01.2026</td>
                 <td th:text="${#temporals.format(item.expectedReturnDate, 'dd.MM.yyyy')}">01.01.2028</td>
                 <td>
@@ -79,16 +187,20 @@
                     <span th:if="${item.status == 'WRITTEN_OFF'}" class="badge bg-danger">Списано</span>
                 </td>
                 <td>
-                    <form th:if="${item.status == 'ISSUED'}" th:action="@{/issued-items/return/{id}(id=${item.id})}"
+                    <form th:if="${item.status == 'ISSUED'}"
+                          th:action="@{/issued-items/return/{id}(id=${item.id})}"
                           method="post" style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-outline-primary"
-                                onclick="return confirm('Вернуть ТМЦ?')">Вернуть
+                                onclick="return confirm('Вернуть ТМЦ?')">
+                            <i class="bi bi-arrow-return-left"></i> Вернуть
                         </button>
                     </form>
-                    <form th:if="${item.status == 'ISSUED'}" th:action="@{/issued-items/write-off/{id}(id=${item.id})}"
+                    <form th:if="${item.status == 'ISSUED'}"
+                          th:action="@{/issued-items/write-off/{id}(id=${item.id})}"
                           method="post" style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-outline-danger"
-                                onclick="return confirm('Списать ТМЦ?')">Списать
+                                onclick="return confirm('Списать ТМЦ?')">
+                            <i class="bi bi-x-circle"></i> Списать
                         </button>
                     </form>
                 </td>
@@ -100,21 +212,26 @@
         </table>
     </div>
 
-    <nav th:if="${totalPages > 0}">
+    <!-- ПАГИНАЦИЯ -->
+    <nav th:if="${totalPages > 1}">
         <ul class="pagination justify-content-center">
             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
                 <a class="page-link"
-                   th:href="@{/issued-items(page=${currentPage - 1}, status=${selectedStatus}, tmcType=${selectedTmcType})}">Назад</a>
+                   th:href="@{/issued-items(page=${currentPage - 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
             </li>
-            <li class="page-item" th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
-                th:classappend="${p == currentPage} ? 'active' : ''">
+            <li th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+                class="page-item" th:classappend="${p == currentPage} ? 'active' : ''">
                 <a class="page-link"
-                   th:href="@{/issued-items(page=${p}, status=${selectedStatus}, tmcType=${selectedTmcType})}"
+                   th:href="@{/issued-items(page=${p}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}"
                    th:text="${p + 1}">1</a>
             </li>
             <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
                 <a class="page-link"
-                   th:href="@{/issued-items(page=${currentPage + 1}, status=${selectedStatus}, tmcType=${selectedTmcType})}">Вперёд</a>
+                   th:href="@{/issued-items(page=${currentPage + 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, status=${selectedStatus}, tmcType=${selectedTmcType}, search=${searchQuery})}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
             </li>
         </ul>
     </nav>

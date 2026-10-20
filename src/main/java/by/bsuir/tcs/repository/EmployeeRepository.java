@@ -20,6 +20,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Page<Employee> findByFullNameContainingIgnoreCase(String fullName, Pageable pageable);
 
+    List<Employee> findByTerminationDateIsNullOrderByFullName();
+
     @Query("SELECT e.department.name, COUNT(e) FROM Employee e GROUP BY e.department.name")
     List<Object[]> countEmployeesByDepartment();
 }

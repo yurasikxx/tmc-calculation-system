@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Выдача ТМЦ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+          rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
@@ -13,6 +16,16 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container mt-4">
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i><span th:text="${success}">OK</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}">Ошибка</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-md-6">
             <h2>Выдача ТМЦ сотруднику</h2>
@@ -24,9 +37,7 @@
                         <option value="">Выберите сотрудника</option>
                         <option th:each="emp : ${employees}"
                                 th:value="${emp.id}"
-                                th:text="${emp.fullName} + ' (' + ${emp.profession.name} + ')'"
-                                th:disabled="${emp.terminationDate != null}">
-                        </option>
+                                th:text="${emp.fullName} + ' (' + ${emp.profession.name} + ')'"></option>
                     </select>
                     <div class="invalid-feedback">Выберите сотрудника</div>
                 </div>
@@ -37,16 +48,26 @@
                         <option value="">Выберите ТМЦ</option>
                         <option th:each="item : ${tmcItems}"
                                 th:value="${item.id}"
-                                th:text="${item.code + ' - ' + item.name}">
-                        </option>
+                                th:text="${item.code + ' - ' + item.name}"></option>
                     </select>
                     <div class="invalid-feedback">Выберите ТМЦ</div>
                 </div>
 
                 <div class="mb-3">
                     <label for="quantity" class="form-label">Количество</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" min="1" value="1" required>
+                    <input type="number" class="form-control" id="quantity" name="quantity"
+                           min="1" value="1" required>
                     <div class="invalid-feedback">Укажите количество</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="issueDate" class="form-label">Дата выдачи</label>
+                    <input type="date" class="form-control" id="issueDate" name="issueDate"
+                           th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" required>
+                    <div class="form-text">
+                        Дата окончания срока службы рассчитывается автоматически
+                        на основе срока службы ТМЦ.
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary">
@@ -60,5 +81,33 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#employeeId').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Начните вводить ФИО',
+            allowClear: true
+        });
+        $('#tmcItemId').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Начните вводить код или название',
+            allowClear: true
+        });
+    });
+    (() => {
+        'use strict';
+        document.querySelectorAll('.needs-validation').forEach(form => {
+            form.addEventListener('submit', e => {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
 </body>
 </html>

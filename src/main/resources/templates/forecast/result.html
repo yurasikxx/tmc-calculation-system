@@ -16,8 +16,11 @@
         <div>
             <h2 class="mb-1">Прогноз для: <span th:text="${tmcName}">ТМЦ</span></h2>
             <small class="text-muted">
-                Модель: <span class="badge bg-secondary" th:text="${method}">ARIMA</span>
-                · Горизонт: <span th:text="${steps}">3</span> мес.
+                Метод: <strong th:text="${method}">Holt-Winters</strong>
+                · Горизонт: <strong th:text="${steps}">12</strong> мес.
+                · Надёжность:
+                <span class="badge" th:classappend="${reliabilityBadge}"
+                      th:text="${reliabilityLabel}">высокая</span>
             </small>
         </div>
         <div>
@@ -36,9 +39,15 @@
         <div>
             <h5 class="alert-heading mb-1">Рекомендация к закупке</h5>
             <p class="mb-0">
-                Рекомендуется закупить <strong th:text="${recommendedQuantity}">0</strong> ед.
+                Рекомендуется закупить
+                <strong th:text="${recommendedQuantity}">0</strong> ед.
                 ТМЦ «<span th:text="${tmcName}">ТМЦ</span>» в течение ближайших
-                <strong th:text="${steps}">3</strong> месяцев.
+                <strong th:text="${steps}">12</strong> месяцев.
+                <span class="text-muted">
+                    (с учётом доверительного интервала:
+                    от <span th:text="${minQuantity}">0</span>
+                    до <span th:text="${maxQuantity}">0</span> ед.)
+                </span>
             </p>
         </div>
     </div>
@@ -63,13 +72,13 @@
                         <tr th:each="point : ${forecast}">
                             <td th:text="'Месяц ' + ${point.step}">1</td>
                             <td class="fw-bold text-end"
-                                th:text="${#numbers.formatDecimal(point.value, 1, 2, 'COMMA')}">10.50
+                                th:text="${#numbers.formatDecimal(point.value, 1, 2, 'COMMA')}">10,50
                             </td>
                             <td class="text-end text-muted"
-                                th:text="${#numbers.formatDecimal(point.lowerBound, 1, 2, 'COMMA')}">8.00
+                                th:text="${#numbers.formatDecimal(point.lowerBound, 1, 2, 'COMMA')}">8,00
                             </td>
                             <td class="text-end text-muted"
-                                th:text="${#numbers.formatDecimal(point.upperBound, 1, 2, 'COMMA')}">12.00
+                                th:text="${#numbers.formatDecimal(point.upperBound, 1, 2, 'COMMA')}">12,00
                             </td>
                         </tr>
                         </tbody>
@@ -83,7 +92,7 @@
                     <i class="bi bi-graph-up me-2"></i>График прогноза
                 </div>
                 <div class="card-body">
-                    <canvas id="forecastChart" style="max-height: 350px;"></canvas>
+                    <canvas id="forecastChart" style="max-height: 380px;"></canvas>
                 </div>
             </div>
         </div>
@@ -97,6 +106,32 @@
     const upper = /*[[${forecast.![#this.upperBound]}]]*/ [];
 
     const ctx = document.getElementById('forecastChart').getContext('2d');
+
+    const ciBandPlugin = {
+        id: 'ciBand',
+        beforeDatasetsDraw(chart) {
+            const {ctx, chartArea, scales} = chart;
+            if (!chartArea) return;
+            const y = scales.y;
+            ctx.save();
+            ctx.beginPath();
+            upper.forEach((v, i) => {
+                const px = scales.x.getPixelForValue(i);
+                const py = y.getPixelForValue(v);
+                i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            });
+            for (let i = lower.length - 1; i >= 0; i--) {
+                const px = scales.x.getPixelForValue(i);
+                const py = y.getPixelForValue(lower[i]);
+                ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(13, 110, 253, 0.12)';
+            ctx.fill();
+            ctx.restore();
+        }
+    };
+
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -107,25 +142,28 @@
                     data: values,
                     borderColor: '#0d6efd',
                     backgroundColor: 'rgba(13, 110, 253, 0.15)',
-                    fill: true,
+                    fill: false,
                     tension: 0.3,
-                    borderWidth: 3
+                    borderWidth: 3,
+                    pointRadius: 4
                 },
                 {
-                    label: 'Мин.',
+                    label: 'Мин. (95%)',
                     data: lower,
                     borderColor: '#dc3545',
                     borderDash: [5, 5],
                     fill: false,
-                    borderWidth: 1
+                    borderWidth: 1,
+                    pointRadius: 0
                 },
                 {
-                    label: 'Макс.',
+                    label: 'Макс. (95%)',
                     data: upper,
                     borderColor: '#198754',
                     borderDash: [5, 5],
                     fill: false,
-                    borderWidth: 1
+                    borderWidth: 1,
+                    pointRadius: 0
                 }
             ]
         },
@@ -134,7 +172,8 @@
             maintainAspectRatio: false,
             plugins: {legend: {position: 'bottom'}},
             scales: {y: {beginAtZero: true}}
-        }
+        },
+        plugins: [ciBandPlugin]
     });
 </script>
 </body>

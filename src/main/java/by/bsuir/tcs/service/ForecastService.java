@@ -5,6 +5,7 @@ import by.bsuir.tcs.dto.forecast.ForecastResponse;
 import by.bsuir.tcs.entity.CalculationResult;
 import by.bsuir.tcs.repository.CalculationResultRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -13,18 +14,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ForecastService {
 
     private final CalculationResultRepository calculationResultRepository;
-    private final RestClient restClient = RestClient.create("http://localhost:5000");
+    private final RestClient forecastRestClient;
 
     public ForecastResponse forecastForTmc(Long tmcId, Integer steps) {
         List<CalculationResult> historyData = calculationResultRepository.findHistoryByTmcId(tmcId);
 
-        if (historyData.isEmpty()) {
-            throw new RuntimeException("Нет исторических данных для прогнозирования");
+        if (historyData == null || historyData.isEmpty()) {
+            throw new IllegalStateException("Нет исторических данных для прогнозирования");
         }
 
         Map<String, Double> groupedByMonth = new TreeMap<>();
@@ -35,19 +37,26 @@ public class ForecastService {
 
         List<Double> history = new ArrayList<>(groupedByMonth.values());
 
+        if (history.size() < 12) {
+            log.warn("TMC {}: too little history ({} points)", tmcId, history.size());
+        }
+
         ForecastRequest request = ForecastRequest.builder()
                 .history(history)
                 .steps(steps)
                 .build();
 
         try {
-            return restClient.post()
+            return forecastRestClient.post()
                     .uri("/forecast")
                     .body(request)
                     .retrieve()
                     .body(ForecastResponse.class);
         } catch (Exception e) {
-            throw new RuntimeException("Ошибка связи с сервисом прогнозирования. Убедитесь, что Python-сервис запущен. " + e.getMessage());
+            log.error("Forecast service call failed for tmcId={}", tmcId, e);
+            throw new RuntimeException(
+                    "Ошибка связи с сервисом прогнозирования. Убедитесь, что Python-сервис запущен. "
+                            + e.getMessage(), e);
         }
     }
 }

@@ -1,7 +1,6 @@
 package by.bsuir.tcs.controller.web;
 
 import by.bsuir.tcs.entity.IssuedItem;
-import by.bsuir.tcs.entity.TmcItem;
 import by.bsuir.tcs.service.EmployeeService;
 import by.bsuir.tcs.service.IssuedItemService;
 import by.bsuir.tcs.service.TmcItemService;
@@ -28,27 +27,40 @@ public class IssuedItemController {
     public String list(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String tmcType,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "25") int size,
+            @RequestParam(defaultValue = "issueDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
             Model model) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "issueDate"));
-        Page<IssuedItem> itemPage = issuedItemService.findAllWithFilters(status, tmcType, pageable);
+        Pageable pageable = PageRequest.of(
+                page, size,
+                Sort.by(Sort.Direction.fromString(sortDir), sortBy)
+        );
+
+        Page<IssuedItem> itemPage = issuedItemService.findAllWithFilters(
+                status, tmcType, search, pageable
+        );
 
         model.addAttribute("items", itemPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", itemPage.getTotalPages());
         model.addAttribute("totalItems", itemPage.getTotalElements());
         model.addAttribute("size", size);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         model.addAttribute("selectedStatus", status);
         model.addAttribute("selectedTmcType", tmcType);
+        model.addAttribute("searchQuery", search);
 
         return "issued-items/list";
     }
 
     @GetMapping("/issue")
     public String issueForm(Model model) {
-        model.addAttribute("employees", employeeService.findAll());
+        model.addAttribute("employees", employeeService.findAllActive());
         model.addAttribute("tmcItems", tmcItemService.findAll());
         return "issued-items/form";
     }

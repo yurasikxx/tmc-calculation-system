@@ -443,3 +443,171 @@ ON CONFLICT DO NOTHING;
 
 SELECT setval('employees_id_seq', (SELECT MAX(id) FROM employees));
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+
+DELETE FROM staffing_plans;
+
+INSERT INTO staffing_plans (
+    employee_id, action_type, effective_date,
+    new_profession_id, new_department_id,
+    old_profession_id, old_department_id
+)
+SELECT
+    e.id,
+    'HIRE',
+    LEAST(e.hire_date, DATE '2026-10-01'),
+    e.profession_id, e.department_id,
+    NULL, NULL
+FROM employees e
+WHERE e.hire_date >= DATE '2020-01-01'
+  AND e.hire_date <= DATE '2026-10-01';
+
+INSERT INTO staffing_plans (
+    employee_id, action_type, effective_date,
+    new_profession_id, new_department_id,
+    old_profession_id, old_department_id
+)
+SELECT
+    e.id,
+    'TRANSFER',
+    DATE '2020-01-01' + ((ABS(HASHTEXT(e.full_name)) % 2000) || ' days')::interval,
+    e.profession_id,
+    ((ABS(HASHTEXT(e.full_name || 'd')) % 8) + 1)::int,
+    e.profession_id,
+    e.department_id
+FROM employees e
+WHERE e.hire_date < DATE '2020-01-01'
+AND ABS(HASHTEXT(e.full_name)) % 10 < 4
+AND DATE '2020-01-01' + ((ABS(HASHTEXT(e.full_name)) % 2000) || ' days')::interval
+BETWEEN e.hire_date + INTERVAL '30 days' AND DATE '2026-10-01';
+
+INSERT INTO staffing_plans (
+    employee_id, action_type, effective_date,
+    new_profession_id, new_department_id,
+    old_profession_id, old_department_id
+)
+SELECT
+    e.id,
+    'TERMINATE',
+    DATE '2020-01-01' + ((ABS(HASHTEXT(e.full_name || 'x')) % 2000) || ' days')::interval,
+    NULL, NULL,
+    e.profession_id, e.department_id
+FROM employees e
+WHERE ABS(HASHTEXT(e.full_name || 'x')) % 10 < 3
+AND DATE '2020-01-01' + ((ABS(HASHTEXT(e.full_name || 'x')) % 2000) || ' days')::interval
+BETWEEN GREATEST(e.hire_date + INTERVAL '60 days', DATE '2020-01-01')
+AND DATE '2026-10-01';
+
+UPDATE employees e
+SET termination_date = sp.effective_date
+FROM staffing_plans sp
+WHERE sp.employee_id = e.id
+AND sp.action_type = 'TERMINATE'
+AND e.termination_date IS NULL;
+
+WITH last_transfer AS (
+    SELECT DISTINCT ON (employee_id)
+    employee_id, new_department_id, effective_date
+    FROM staffing_plans
+    WHERE action_type = 'TRANSFER'
+    ORDER BY employee_id, effective_date DESC
+)
+UPDATE employees e
+SET department_id = lt.new_department_id
+FROM last_transfer lt
+WHERE lt.employee_id = e.id;
+
+DELETE FROM issued_items;
+
+INSERT INTO issued_items (
+    employee_id, tmc_item_id, quantity, issue_date,
+    expected_return_date, actual_return_date, status
+)
+SELECT
+    e.id,
+    n.tmc_id,
+    n.quantity,
+    DATE '2026-05-01' + ((ABS(HASHTEXT(e.full_name || n.id::text)) % 150) || ' days')::interval,
+    DATE '2026-05-01' + ((ABS(HASHTEXT(e.full_name || n.id::text)) % 150) || ' days')::interval
+        + (n.period_months || ' months')::interval,
+    NULL,
+    'ISSUED'
+FROM employees e
+         JOIN norms n ON n.profession_id = e.profession_id
+WHERE e.termination_date IS NULL
+AND e.department_id <= 8
+AND e.id % 3 <> 0;
+
+UPDATE issued_items
+SET status = 'RETURNED',
+    actual_return_date = issue_date + INTERVAL '30 days'
+WHERE status = 'ISSUED'
+AND id % 10 = 0;
+
+UPDATE issued_items
+SET status = 'WRITTEN_OFF',
+    actual_return_date = expected_return_date
+WHERE status = 'ISSUED'
+AND id % 10 = 1;
+
+DELETE FROM calculation_results;
+
+WITH months AS (
+    SELECT
+    d::date AS m_date,
+    EXTRACT(MONTH FROM d)::int AS m,
+    EXTRACT(YEAR  FROM d)::int AS y,
+    ROW_NUMBER() OVER (ORDER BY d) AS idx
+    FROM generate_series('2020-01-01'::date, '2026-10-01'::date, '1 month'::interval) AS d
+),
+base_demand AS (
+    SELECT
+    n.tmc_id,
+    n.profession_id,
+    n.quantity AS qty_per_employee,
+    n.period_months,
+    COUNT(e.id) AS employee_count
+    FROM norms n
+    LEFT JOIN employees e
+    ON e.profession_id = n.profession_id
+    AND e.hire_date <= DATE '2026-10-01'
+    GROUP BY n.tmc_id, n.profession_id, n.quantity, n.period_months
+),
+tmc_totals AS (
+    SELECT
+    tmc_id,
+    SUM(qty_per_employee * employee_count)::numeric AS base_annual_demand,
+    AVG(period_months)::numeric AS avg_period
+    FROM base_demand
+    GROUP BY tmc_id
+),
+tmc_factors AS (
+    SELECT
+    tmc.id AS tmc_id,
+    tmc.type_id,
+    CASE tmc.type_id WHEN 1 THEN 35.0 WHEN 2 THEN 4.0 ELSE 2.0 END AS seasonal_amp,
+    CASE tmc.type_id WHEN 1 THEN 1.8 WHEN 2 THEN 0.4 ELSE 0.15 END AS trend_k,
+    CASE tmc.type_id WHEN 1 THEN 5.0 WHEN 2 THEN 2.0 ELSE 1.0 END AS noise,
+    0.7 + (MOD(ABS(HASHTEXT(tmc.code)), 61)::numeric / 100.0) AS code_factor,
+    MOD(ABS(HASHTEXT(tmc.code)), 12)::numeric AS phase
+    FROM tmc_items tmc
+)
+INSERT INTO calculation_results
+(tmc_id, required_quantity, period_month, period_year, calculation_date)
+SELECT
+f.tmc_id,
+GREATEST(1,
+    ROUND(
+        (COALESCE(t.base_annual_demand, 0) / 12.0) * f.code_factor
+        + (COALESCE(t.base_annual_demand, 0) / 120.0) * m.idx
+        + f.seasonal_amp * SIN((m.m + f.phase)::float * 3.14159 / 6)
+        + f.seasonal_amp * 0.3 * SIN((m.m + f.phase)::float * 3.14159 / 2)
+        + (RANDOM() * f.noise * 2 - f.noise)
+        )
+    )::int,
+m.m,
+m.y,
+m.m_date::timestamp
+FROM months m
+CROSS JOIN tmc_factors f
+LEFT JOIN tmc_totals t ON t.tmc_id = f.tmc_id
+ORDER BY m.m_date, f.tmc_id;

@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS employees (
     id SERIAL PRIMARY KEY,
     full_name VARCHAR(200) NOT NULL,
     hire_date DATE NOT NULL,
-    termination_date DATE NULL,
+    termination_date DATE,
     profession_id INTEGER NOT NULL REFERENCES professions (id) ON DELETE RESTRICT,
     department_id INTEGER NOT NULL REFERENCES departments (id) ON DELETE RESTRICT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -74,25 +74,6 @@ CREATE TABLE IF NOT EXISTS norms (
     UNIQUE (tmc_id, profession_id)
 );
 
-CREATE TABLE IF NOT EXISTS staffing_plans (
-    id SERIAL PRIMARY KEY,
-    employee_id INTEGER NOT NULL REFERENCES employees (id) ON DELETE CASCADE,
-    action_type VARCHAR(20) NOT NULL CHECK (action_type IN ('HIRE', 'TERMINATE', 'TRANSFER')),
-    effective_date DATE NOT NULL,
-    new_profession_id INTEGER REFERENCES professions (id) ON DELETE RESTRICT,
-    new_department_id INTEGER REFERENCES departments (id) ON DELETE RESTRICT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS calculation_results (
-    id SERIAL PRIMARY KEY,
-    tmc_id INTEGER NOT NULL REFERENCES tmc_items (id) ON DELETE CASCADE,
-    required_quantity INTEGER NOT NULL CHECK (required_quantity > 0),
-    period_month INTEGER NOT NULL CHECK (period_month >= 1 AND period_month <= 12),
-    period_year INTEGER NOT NULL CHECK (period_year >= 2020),
-    calculation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS user_roles (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
@@ -109,6 +90,40 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS staffing_plans (
+    id SERIAL PRIMARY KEY,
+    employee_id INTEGER NOT NULL REFERENCES employees (id) ON DELETE CASCADE,
+    action_type VARCHAR(20) NOT NULL CHECK (action_type IN ('HIRE', 'TERMINATE', 'TRANSFER')),
+    effective_date DATE NOT NULL,
+    new_profession_id INTEGER REFERENCES professions (id) ON DELETE RESTRICT,
+    new_department_id INTEGER REFERENCES departments (id) ON DELETE RESTRICT,
+    old_profession_id INTEGER REFERENCES professions (id) ON DELETE RESTRICT,
+    old_department_id INTEGER REFERENCES departments (id) ON DELETE RESTRICT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS calculation_results (
+    id SERIAL PRIMARY KEY,
+    tmc_id INTEGER NOT NULL REFERENCES tmc_items (id) ON DELETE CASCADE,
+    required_quantity INTEGER NOT NULL CHECK (required_quantity > 0),
+    period_month INTEGER NOT NULL CHECK (period_month >= 1 AND period_month <= 12),
+    period_year INTEGER NOT NULL CHECK (period_year >= 2020),
+    calculation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS issued_items (
+    id SERIAL PRIMARY KEY,
+    employee_id INTEGER NOT NULL REFERENCES employees (id) ON DELETE CASCADE,
+    tmc_item_id INTEGER NOT NULL REFERENCES tmc_items (id) ON DELETE RESTRICT,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    issue_date DATE NOT NULL,
+    expected_return_date DATE NOT NULL,
+    actual_return_date DATE,
+    status VARCHAR(20) NOT NULL DEFAULT 'ISSUED' CHECK (status IN ('ISSUED', 'RETURNED', 'WRITTEN_OFF')),
+    created_by INTEGER REFERENCES users (id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_employees_profession ON employees (profession_id);
 CREATE INDEX IF NOT EXISTS idx_employees_department ON employees (department_id);
 CREATE INDEX IF NOT EXISTS idx_tmc_items_type ON tmc_items (type_id);
@@ -121,3 +136,7 @@ CREATE INDEX IF NOT EXISTS idx_calculation_results_tmc ON calculation_results (t
 CREATE INDEX IF NOT EXISTS idx_calculation_results_period ON calculation_results (period_year, period_month);
 CREATE INDEX IF NOT EXISTS idx_users_employee ON users (employee_id);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users (role_id);
+CREATE INDEX IF NOT EXISTS idx_issued_items_employee ON issued_items (employee_id);
+CREATE INDEX IF NOT EXISTS idx_issued_items_tmc ON issued_items (tmc_item_id);
+CREATE INDEX IF NOT EXISTS idx_issued_items_status ON issued_items (status);
+CREATE INDEX IF NOT EXISTS idx_issued_items_expected_date ON issued_items (expected_return_date);
