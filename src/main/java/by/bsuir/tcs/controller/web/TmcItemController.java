@@ -17,6 +17,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/tmc-items")
 @RequiredArgsConstructor
@@ -36,19 +38,27 @@ public class TmcItemController {
             @RequestParam(defaultValue = "desc") String sortDir,
             Model model) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
-        Page<TmcItem> itemPage;
+        List<String> availableTypes = tmcTypeService.findAvailableTypeNames();
 
-        String role = getCurrentUserRole();
+        if (type != null && !type.isEmpty() && !availableTypes.contains(type)) {
+            type = null;
+        }
+
+        Pageable pageable = PageRequest.of(
+                page, size,
+                Sort.by(Sort.Direction.fromString(sortDir), sortBy)
+        );
+
+        Page<TmcItem> itemPage;
 
         if (type != null && !type.isEmpty() && search != null && !search.isEmpty()) {
             itemPage = tmcItemService.findByTypeAndSearch(type, search, pageable);
         } else if (type != null && !type.isEmpty()) {
             itemPage = tmcItemService.findByType(type, pageable);
         } else if (search != null && !search.isEmpty()) {
-            itemPage = tmcItemService.findBySearch(search, pageable);
+            itemPage = tmcItemService.findBySearchForTypes(availableTypes, search, pageable);
         } else {
-            itemPage = tmcItemService.findAllForCurrentUser(pageable);
+            itemPage = tmcItemService.findByTypes(availableTypes, pageable);
         }
 
         model.addAttribute("tmcItems", itemPage.getContent());
@@ -61,6 +71,8 @@ public class TmcItemController {
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         model.addAttribute("selectedType", type);
         model.addAttribute("searchQuery", search);
+        model.addAttribute("availableTypes", availableTypes);
+        model.addAttribute("tmcTypeService", tmcTypeService);
 
         return "tmc-items/list";
     }
@@ -77,11 +89,14 @@ public class TmcItemController {
             defaultType = tmcTypeService.findByName("SIZ");
             attributeType = "SIZ";
         } else if ("ROLE_TECHNOLOG".equals(role)) {
-            defaultType = tmcTypeService.findByName("EQUIPMENT");
-            attributeType = "EQUIPMENT";
+            defaultType = tmcTypeService.findByName("TOOL");       // ← было EQUIPMENT
+            attributeType = "TOOL";                                 // ← было EQUIPMENT
         } else if ("ROLE_STOREKEEPER".equals(role)) {
             defaultType = tmcTypeService.findByName("TOOL");
             attributeType = "TOOL";
+        } else if ("ROLE_ADMIN".equals(role)) {
+            defaultType = tmcTypeService.findByName("SIZ");
+            attributeType = "SIZ";
         }
 
         if (defaultType != null) {
@@ -93,16 +108,12 @@ public class TmcItemController {
         model.addAttribute("tmcTypes", tmcTypeService.findAvailableForCurrentUser());
         model.addAttribute("units", unitService.findAll());
 
-        SizAttributes sizAttrs = new SizAttributes();
-        ToolAttributes toolAttrs = new ToolAttributes();
-        EquipmentAttributes equipAttrs = new EquipmentAttributes();
-
         if ("SIZ".equals(attributeType)) {
-            model.addAttribute("attributes", sizAttrs);
+            model.addAttribute("attributes", new SizAttributes());
         } else if ("TOOL".equals(attributeType)) {
-            model.addAttribute("attributes", toolAttrs);
+            model.addAttribute("attributes", new ToolAttributes());
         } else if ("EQUIPMENT".equals(attributeType)) {
-            model.addAttribute("attributes", equipAttrs);
+            model.addAttribute("attributes", new EquipmentAttributes());
         }
 
         return "tmc-items/form";

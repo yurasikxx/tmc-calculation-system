@@ -25,10 +25,11 @@
             <form method="get" id="filterForm">
                 <label for="typeFilter" class="form-label">Тип</label>
                 <select class="form-select" id="typeFilter" name="type" onchange="this.form.submit()">
-                    <option value="">Все</option>
-                    <option value="SIZ" th:selected="${selectedType == 'SIZ'}">СИЗ</option>
-                    <option value="TOOL" th:selected="${selectedType == 'TOOL'}">Инструмент</option>
-                    <option value="EQUIPMENT" th:selected="${selectedType == 'EQUIPMENT'}">Оснастка</option>
+                    <option value="">Все доступные</option>
+                    <option th:each="t : ${availableTypes}"
+                            th:value="${t}"
+                            th:selected="${selectedType == t}"
+                            th:text="${t == 'SIZ' ? 'СИЗ' : (t == 'TOOL' ? 'Инструмент' : 'Оснастка')}"></option>
                 </select>
             </form>
         </div>

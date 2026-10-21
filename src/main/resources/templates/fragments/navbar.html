@@ -21,22 +21,22 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto" sec:authorize="isAuthenticated()">
-                    <li class="nav-item" sec:authorize="hasAnyRole('LABOR', 'ADMIN')">
+                    <li class="nav-item" sec:authorize="hasAnyRole('LABOR')">
                         <a class="nav-link" href="/departments">Подразделения</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasAnyRole('LABOR', 'ADMIN')">
+                    <li class="nav-item" sec:authorize="hasAnyRole('LABOR')">
                         <a class="nav-link" href="/professions">Профессии</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasAnyRole('LABOR', 'ADMIN', 'MTS')">
+                    <li class="nav-item" sec:authorize="hasAnyRole('LABOR', 'MTS')">
                         <a class="nav-link" href="/employees">Сотрудники</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasAnyRole('OT', 'STOREKEEPER', 'TECHNOLOG', 'ADMIN')">
+                    <li class="nav-item" sec:authorize="hasAnyRole('OT', 'STOREKEEPER', 'TECHNOLOG')">
                         <a class="nav-link" href="/tmc-items">ТМЦ</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasAnyRole('OT', 'STOREKEEPER', 'TECHNOLOG', 'ADMIN')">
+                    <li class="nav-item" sec:authorize="hasAnyRole('OT', 'STOREKEEPER', 'TECHNOLOG')">
                         <a class="nav-link" href="/norms">Нормы</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasAnyRole('STOREKEEPER', 'ADMIN')">
+                    <li class="nav-item" sec:authorize="hasAnyRole('STOREKEEPER')">
                         <a class="nav-link" href="/issued-items">Выдача ТМЦ</a>
                     </li>
                     <li class="nav-item" sec:authorize="hasRole('MTS')">

@@ -100,7 +100,7 @@ public class NormService {
         norm.setTmcItem(tmcItem);
         norm.setProfession(profession);
 
-        return normRepository.save(norm);
+        return normRepository.saveAndFlush(norm);
     }
 
     @Transactional

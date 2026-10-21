@@ -5,6 +5,7 @@ import by.bsuir.tcs.service.NormService;
 import by.bsuir.tcs.service.ProfessionService;
 import by.bsuir.tcs.service.TmcItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -79,6 +80,8 @@ public class NormController {
         try {
             normService.create(norm);
             redirectAttributes.addFlashAttribute("success", "Норма выдачи успешно создана");
+        } catch (DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("error", "Норма для этой пары (ТМЦ, профессия) уже существует");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Ошибка при создании нормы: " + e.getMessage());
         }

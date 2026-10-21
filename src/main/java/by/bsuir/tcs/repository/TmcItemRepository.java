@@ -16,6 +16,10 @@ public interface TmcItemRepository extends JpaRepository<TmcItem, Long> {
 
     Optional<TmcItem> findByCode(String code);
 
+    List<TmcItem> findAllByOrderByIdDesc();
+
+    List<TmcItem> findByTypeNameOrderByIdDesc(String typeName);
+
     @Query("SELECT i FROM TmcItem i WHERE i.type.name = :typeName")
     Page<TmcItem> findByTypeName(@Param("typeName") String typeName, Pageable pageable);
 
@@ -31,10 +35,25 @@ public interface TmcItemRepository extends JpaRepository<TmcItem, Long> {
             @Param("search") String search2,
             Pageable pageable);
 
-    List<TmcItem> findAllByOrderByIdDesc();
-
-    List<TmcItem> findByTypeNameOrderByIdDesc(String typeName);
-
     @Query("SELECT t.type.name, COUNT(t) FROM TmcItem t GROUP BY t.type.name")
     List<Object[]> countByType();
+
+    @Query("""
+            SELECT t FROM TmcItem t
+            WHERE t.type.name IN :typeNames
+            """)
+    Page<TmcItem> findByTypeNameIn(
+            @Param("typeNames") List<String> typeNames,
+            Pageable pageable);
+
+    @Query("""
+            SELECT t FROM TmcItem t
+            WHERE t.type.name IN :typeNames
+              AND (LOWER(t.name) LIKE CONCAT('%', :search, '%')
+                   OR LOWER(t.code) LIKE CONCAT('%', :search, '%'))
+            """)
+    Page<TmcItem> findByTypeNameInAndSearch(
+            @Param("typeNames") List<String> typeNames,
+            @Param("search") String search,
+            Pageable pageable);
 }

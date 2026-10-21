@@ -202,6 +202,23 @@ public class TmcItemService {
         return equipmentAttributesRepository.findById(tmcId).orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public Page<TmcItem> findByTypes(List<String> typeNames, Pageable pageable) {
+        if (typeNames == null || typeNames.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        return tmcItemRepository.findByTypeNameIn(typeNames, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TmcItem> findBySearchForTypes(
+            List<String> typeNames, String search, Pageable pageable) {
+        if (typeNames == null || typeNames.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        return tmcItemRepository.findByTypeNameInAndSearch(typeNames, search.toLowerCase(), pageable);
+    }
+
     private String getCurrentUserRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
