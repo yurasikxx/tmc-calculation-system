@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,42 +16,31 @@
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Нормы выдачи ТМЦ</h2>
-        <a href="/norms/create" class="btn btn-primary">
+        <a sec:authorize="hasAnyRole('OT', 'TECHNOLOG', 'ADMIN')"
+           href="/norms/create" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Добавить норму
         </a>
     </div>
 
     <div class="row mb-3 g-2 align-items-end">
-        <div class="col-md-2">
-            <form method="get" id="filterForm">
-                <label for="professionFilter" class="form-label">Профессия</label>
-                <select class="form-select" id="professionFilter" name="profession" onchange="this.form.submit()">
-                    <option value="">Все профессии</option>
-                    <option th:each="p : ${allProfessions}"
-                            th:value="${p.name}"
-                            th:text="${p.name}"
-                            th:selected="${selectedProfession == p.name}"></option>
-                </select>
-            </form>
-        </div>
-        <div class="col-md-2">
-            <form method="get" id="tmcFilterForm">
-                <label for="tmcFilter" class="form-label">ТМЦ</label>
-                <select class="form-select" id="tmcFilter" name="tmc" onchange="this.form.submit()">
-                    <option value="">Все ТМЦ</option>
-                    <option th:each="t : ${allTmcItems}"
-                            th:value="${t.name}"
-                            th:text="${t.code + ' - ' + t.name}"
-                            th:selected="${selectedTmc == t.name}"></option>
+        <div class="col-md-3">
+            <form method="get">
+                <label class="form-label">Тип</label>
+                <select class="form-select" name="type" onchange="this.form.submit()">
+                    <option value="">Все доступные</option>
+                    <option th:each="t : ${availableTypes}"
+                            th:value="${t}"
+                            th:selected="${selectedType == t}"
+                            th:text="${t == 'SIZ' ? 'СИЗ' : (t == 'TOOL' ? 'Инструмент' : 'Оснастка')}"></option>
                 </select>
             </form>
         </div>
         <div class="col-md-3">
-            <form method="get" id="searchForm">
-                <label for="searchInput" class="form-label">Поиск</label>
+            <form method="get">
+                <label class="form-label">Поиск</label>
                 <div class="input-group">
-                    <input type="text" class="form-control" id="searchInput" name="search"
-                           placeholder="Профессия или ТМЦ" th:value="${searchQuery}">
+                    <input type="text" class="form-control" name="search"
+                           placeholder="Профессия, ТМЦ, код" th:value="${searchQuery}">
                     <button type="submit" class="btn btn-outline-primary">
                         <i class="bi bi-search"></i>
                     </button>
@@ -58,22 +48,21 @@
             </form>
         </div>
         <div class="col-md-2">
-            <form method="get" id="sizeForm">
-                <label for="sizeSelect" class="form-label">Записей</label>
-                <select class="form-select" id="sizeSelect" name="size" onchange="this.form.submit()">
-                    <option value="5" th:selected="${size == 5}">5</option>
-                    <option value="10" th:selected="${size == 10}">10</option>
+            <form method="get">
+                <label class="form-label">Записей</label>
+                <select class="form-select" name="size" onchange="this.form.submit()">
                     <option value="25" th:selected="${size == 25}">25</option>
                     <option value="50" th:selected="${size == 50}">50</option>
+                    <option value="100" th:selected="${size == 100}">100</option>
                 </select>
             </form>
         </div>
-        <div class="col-md-2 text-end">
+        <div class="col-md-2">
             <a href="/norms" class="btn btn-secondary">
                 <i class="bi bi-arrow-counterclockwise"></i> Сбросить
             </a>
         </div>
-        <div class="col-md-1 text-end">
+        <div class="col-md-2 text-end">
             <span class="text-muted">
                 Всего: <strong th:text="${totalItems}">0</strong>
             </span>
@@ -84,91 +73,64 @@
         <table class="table table-striped table-hover">
             <thead>
             <tr>
-                <th>
-                    <a th:href="@{/norms(page=${currentPage}, size=${size}, sortBy='id', sortDir=${reverseSortDir}, profession=${selectedProfession}, tmc=${selectedTmc}, search=${searchQuery})}"
-                       class="text-decoration-none text-dark">
-                        ID
-                        <i th:if="${sortBy == 'id'}"
-                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
-                    </a>
-                </th>
-                <th>
-                    <a th:href="@{/norms(page=${currentPage}, size=${size}, sortBy='profession.name', sortDir=${reverseSortDir}, profession=${selectedProfession}, tmc=${selectedTmc}, search=${searchQuery})}"
-                       class="text-decoration-none text-dark">
-                        Профессия
-                        <i th:if="${sortBy == 'profession.name'}"
-                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
-                    </a>
-                </th>
-                <th>
-                    <a th:href="@{/norms(page=${currentPage}, size=${size}, sortBy='tmcItem.name', sortDir=${reverseSortDir}, profession=${selectedProfession}, tmc=${selectedTmc}, search=${searchQuery})}"
-                       class="text-decoration-none text-dark">
-                        ТМЦ
-                        <i th:if="${sortBy == 'tmcItem.name'}"
-                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
-                    </a>
-                </th>
-                <th>
-                    <a th:href="@{/norms(page=${currentPage}, size=${size}, sortBy='quantity', sortDir=${reverseSortDir}, profession=${selectedProfession}, tmc=${selectedTmc}, search=${searchQuery})}"
-                       class="text-decoration-none text-dark">
-                        Количество
-                        <i th:if="${sortBy == 'quantity'}"
-                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
-                    </a>
-                </th>
-                <th>
-                    <a th:href="@{/norms(page=${currentPage}, size=${size}, sortBy='periodMonths', sortDir=${reverseSortDir}, profession=${selectedProfession}, tmc=${selectedTmc}, search=${searchQuery})}"
-                       class="text-decoration-none text-dark">
-                        Период (мес.)
-                        <i th:if="${sortBy == 'periodMonths'}"
-                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
-                    </a>
-                </th>
-                <th style="width: 200px;">Действия</th>
+                <th>ID</th>
+                <th>ТМЦ</th>
+                <th>Профессия</th>
+                <th class="text-end">Количество</th>
+                <th class="text-end">Период (мес.)</th>
+                <th style="width: 160px;">Действия</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="norm : ${norms}">
                 <td th:text="${norm.id}">1</td>
-                <td th:text="${norm.profession.name}">Токарь</td>
-                <td th:text="${norm.tmcItem.name}">Штангенциркуль</td>
-                <td th:text="${norm.quantity}">1</td>
-                <td th:text="${norm.periodMonths}">24</td>
                 <td>
-                    <a th:href="@{/norms/edit/{id}(id=${norm.id})}" class="btn btn-sm btn-warning">
+                    <span th:text="${norm.tmcItem.code}">С00000001</span> —
+                    <span th:text="${norm.tmcItem.name}">Костюм</span>
+                </td>
+                <td th:text="${norm.profession.name}">Токарь</td>
+                <td class="text-end" th:text="${norm.quantity}">1</td>
+                <td class="text-end" th:text="${norm.periodMonths}">24</td>
+                <td>
+                    <a sec:authorize="hasAnyRole('OT', 'TECHNOLOG', 'ADMIN')"
+                       th:href="@{/norms/edit/{id}(id=${norm.id})}"
+                       class="btn btn-sm btn-warning">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <form th:action="@{/norms/delete/{id}(id=${norm.id})}" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить норму?')">
+                    <form sec:authorize="hasAnyRole('OT', 'TECHNOLOG', 'ADMIN')"
+                          th:action="@{/norms/delete/{id}(id=${norm.id})}" method="post"
+                          style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Удалить норму?')">
                             <i class="bi bi-trash"></i>
                         </button>
                     </form>
                 </td>
             </tr>
             <tr th:if="${norms.isEmpty()}">
-                <td colspan="6" class="text-center text-muted">Нет норм выдачи</td>
+                <td colspan="6" class="text-center text-muted">Нет норм</td>
             </tr>
             </tbody>
         </table>
     </div>
 
-    <nav th:if="${totalPages > 0}">
+    <nav th:if="${totalPages > 1}">
         <ul class="pagination justify-content-center">
             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
                 <a class="page-link"
-                   th:href="@{/norms(page=${currentPage - 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, profession=${selectedProfession}, tmc=${selectedTmc}, search=${searchQuery})}">
+                   th:href="@{/norms(page=${currentPage - 1}, size=${size}, type=${selectedType}, search=${searchQuery})}">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             </li>
-            <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
-                class="page-item" th:classappend="${pageNum == currentPage} ? 'active' : ''">
+            <li th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+                class="page-item" th:classappend="${p == currentPage} ? 'active' : ''">
                 <a class="page-link"
-                   th:href="@{/norms(page=${pageNum}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, profession=${selectedProfession}, tmc=${selectedTmc}, search=${searchQuery})}"
-                   th:text="${pageNum + 1}">1</a>
+                   th:href="@{/norms(page=${p}, size=${size}, type=${selectedType}, search=${searchQuery})}"
+                   th:text="${p + 1}">1</a>
             </li>
             <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
                 <a class="page-link"
-                   th:href="@{/norms(page=${currentPage + 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, profession=${selectedProfession}, tmc=${selectedTmc}, search=${searchQuery})}">
+                   th:href="@{/norms(page=${currentPage + 1}, size=${size}, type=${selectedType}, search=${searchQuery})}">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>

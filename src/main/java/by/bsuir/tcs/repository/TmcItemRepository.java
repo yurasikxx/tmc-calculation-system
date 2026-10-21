@@ -56,4 +56,11 @@ public interface TmcItemRepository extends JpaRepository<TmcItem, Long> {
             @Param("typeNames") List<String> typeNames,
             @Param("search") String search,
             Pageable pageable);
+
+    @Query("""
+            SELECT t FROM TmcItem t
+            WHERE t.type.name IN :typeNames
+            ORDER BY t.code
+            """)
+    List<TmcItem> findAllByTypeNames(@Param("typeNames") List<String> typeNames);
 }

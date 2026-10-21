@@ -35,4 +35,27 @@ public interface NormRepository extends JpaRepository<Norm, Long> {
 
     @Query("SELECT n FROM Norm n WHERE n.profession.name LIKE %:search% OR n.tmcItem.name LIKE %:search% OR n.tmcItem.code LIKE %:search%")
     Page<Norm> findBySearch(@Param("search") String search, Pageable pageable);
+
+    @Query("""
+            SELECT n FROM Norm n
+            WHERE n.tmcItem.type.name IN :typeNames
+            """)
+    Page<Norm> findByTmcTypeNameIn(
+            @Param("typeNames") List<String> typeNames,
+            Pageable pageable);
+
+    @Query("""
+            SELECT n FROM Norm n
+            WHERE n.tmcItem.type.name IN :typeNames
+              AND (
+                  :search IS NULL
+                  OR LOWER(n.profession.name) LIKE CONCAT('%', :search, '%')
+                  OR LOWER(n.tmcItem.name) LIKE CONCAT('%', :search, '%')
+                  OR LOWER(n.tmcItem.code) LIKE CONCAT('%', :search, '%')
+              )
+            """)
+    Page<Norm> findByTypeNamesAndSearch(
+            @Param("typeNames") List<String> typeNames,
+            @Param("search") String search,
+            Pageable pageable);
 }

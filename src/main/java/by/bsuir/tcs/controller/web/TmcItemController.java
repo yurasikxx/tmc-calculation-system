@@ -78,43 +78,40 @@ public class TmcItemController {
     }
 
     @GetMapping("/create")
-    public String createForm(Model model) {
-        TmcItem tmcItem = new TmcItem();
+    public String createForm(Model model, RedirectAttributes redirectAttributes) {
         String role = getCurrentUserRole();
 
-        TmcType defaultType = null;
-        String attributeType = null;
+        if (!canCreateTmc(role)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "У вас нет прав на создание ТМЦ");
+            return "redirect:/tmc-items";
+        }
 
+        TmcItem tmcItem = new TmcItem();
+
+        TmcType defaultType;
+        String attributeType;
         if ("ROLE_OT".equals(role)) {
             defaultType = tmcTypeService.findByName("SIZ");
             attributeType = "SIZ";
         } else if ("ROLE_TECHNOLOG".equals(role)) {
-            defaultType = tmcTypeService.findByName("TOOL");       // ← было EQUIPMENT
-            attributeType = "TOOL";                                 // ← было EQUIPMENT
-        } else if ("ROLE_STOREKEEPER".equals(role)) {
             defaultType = tmcTypeService.findByName("TOOL");
             attributeType = "TOOL";
-        } else if ("ROLE_ADMIN".equals(role)) {
+        } else {
             defaultType = tmcTypeService.findByName("SIZ");
             attributeType = "SIZ";
         }
 
-        if (defaultType != null) {
-            tmcItem.setType(defaultType);
-        }
+        tmcItem.setType(defaultType);
 
         model.addAttribute("tmcItem", tmcItem);
         model.addAttribute("attributeType", attributeType);
         model.addAttribute("tmcTypes", tmcTypeService.findAvailableForCurrentUser());
         model.addAttribute("units", unitService.findAll());
 
-        if ("SIZ".equals(attributeType)) {
-            model.addAttribute("attributes", new SizAttributes());
-        } else if ("TOOL".equals(attributeType)) {
-            model.addAttribute("attributes", new ToolAttributes());
-        } else if ("EQUIPMENT".equals(attributeType)) {
-            model.addAttribute("attributes", new EquipmentAttributes());
-        }
+        model.addAttribute("sizAttributes", new SizAttributes());
+        model.addAttribute("toolAttributes", new ToolAttributes());
+        model.addAttribute("equipmentAttributes", new EquipmentAttributes());
 
         return "tmc-items/form";
     }
@@ -170,7 +167,15 @@ public class TmcItemController {
     }
 
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable Long id, Model model) {
+    public String editForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        String role = getCurrentUserRole();
+
+        if (!canCreateTmc(role)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "У вас нет прав на редактирование ТМЦ");
+            return "redirect:/tmc-items";
+        }
+
         TmcItem tmcItem = tmcItemService.findById(id);
         TmcType type = tmcItem.getType();
         String attributeType = type.getName();
@@ -180,16 +185,13 @@ public class TmcItemController {
         model.addAttribute("tmcTypes", tmcTypeService.findAvailableForCurrentUser());
         model.addAttribute("units", unitService.findAll());
 
-        if ("SIZ".equals(attributeType)) {
-            SizAttributes attrs = tmcItemService.findSizAttributes(id);
-            model.addAttribute("attributes", attrs != null ? attrs : new SizAttributes());
-        } else if ("TOOL".equals(attributeType)) {
-            ToolAttributes attrs = tmcItemService.findToolAttributes(id);
-            model.addAttribute("attributes", attrs != null ? attrs : new ToolAttributes());
-        } else if ("EQUIPMENT".equals(attributeType)) {
-            EquipmentAttributes attrs = tmcItemService.findEquipmentAttributes(id);
-            model.addAttribute("attributes", attrs != null ? attrs : new EquipmentAttributes());
-        }
+        SizAttributes sizAttrs = tmcItemService.findSizAttributes(id);
+        ToolAttributes toolAttrs = tmcItemService.findToolAttributes(id);
+        EquipmentAttributes equipAttrs = tmcItemService.findEquipmentAttributes(id);
+
+        model.addAttribute("sizAttributes", sizAttrs != null ? sizAttrs : new SizAttributes());
+        model.addAttribute("toolAttributes", toolAttrs != null ? toolAttrs : new ToolAttributes());
+        model.addAttribute("equipmentAttributes", equipAttrs != null ? equipAttrs : new EquipmentAttributes());
 
         return "tmc-items/form";
     }
@@ -254,6 +256,12 @@ public class TmcItemController {
             redirectAttributes.addFlashAttribute("error", "Ошибка при удалении ТМЦ: " + e.getMessage());
         }
         return "redirect:/tmc-items";
+    }
+
+    private boolean canCreateTmc(String role) {
+        return "ROLE_OT".equals(role)
+                || "ROLE_TECHNOLOG".equals(role)
+                || "ROLE_ADMIN".equals(role);
     }
 
     private String getCurrentUserRole() {

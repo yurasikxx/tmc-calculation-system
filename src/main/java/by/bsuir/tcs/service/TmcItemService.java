@@ -23,6 +23,7 @@ public class TmcItemService {
     private final SizAttributesRepository sizAttributesRepository;
     private final ToolAttributesRepository toolAttributesRepository;
     private final EquipmentAttributesRepository equipmentAttributesRepository;
+    private final TmcTypeService tmcTypeService;
 
     @Transactional(readOnly = true)
     public List<TmcItem> findAll() {
@@ -176,13 +177,16 @@ public class TmcItemService {
         tmcItemRepository.delete(tmcItem);
     }
 
-    public boolean hasAccessToTmcItem(TmcItem tmcItem) {
+    public boolean hasAccessToTmcItem(TmcItem item) {
+        if (item == null || item.getType() == null) return false;
+
         String role = getCurrentUserRole();
+        String type = item.getType().getName();
+
         return switch (role) {
-            case "ROLE_OT" -> tmcItem.getType().getName().equals("SIZ");
-            case "ROLE_TECHNOLOG" -> tmcItem.getType().getName().equals("EQUIPMENT");
-            case "ROLE_STOREKEEPER" -> tmcItem.getType().getName().equals("TOOL");
-            case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> true;
+            case "ROLE_OT" -> "SIZ".equals(type);
+            case "ROLE_TECHNOLOG" -> "TOOL".equals(type) || "EQUIPMENT".equals(type);
+            case "ROLE_STOREKEEPER", "ROLE_ADMIN" -> true;
             default -> false;
         };
     }
@@ -217,6 +221,13 @@ public class TmcItemService {
             return Page.empty(pageable);
         }
         return tmcItemRepository.findByTypeNameInAndSearch(typeNames, search.toLowerCase(), pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TmcItem> findAllAvailableForCurrentUser() {
+        List<String> types = tmcTypeService.findAvailableTypeNames();
+        if (types.isEmpty()) return List.of();
+        return tmcItemRepository.findAllByTypeNames(types);
     }
 
     private String getCurrentUserRole() {

@@ -2,62 +2,54 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:if="${norm.id == null}">Создание нормы выдачи</title>
-    <title th:if="${norm.id != null}">Редактирование нормы выдачи</title>
+    <title>Норма выдачи</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h2 th:if="${norm.id == null}">Новая норма выдачи</h2>
-            <h2 th:if="${norm.id != null}">Редактирование нормы выдачи</h2>
+        <div class="col-md-6">
+            <h2 th:text="${norm.id == null} ? 'Создание нормы' : 'Редактирование нормы'">Норма</h2>
 
             <form th:action="${norm.id == null} ? @{/norms/create} : @{/norms/edit/{id}(id=${norm.id})}"
-                  method="post" class="needs-validation" novalidate>
+                  th:object="${norm}" method="post">
+
                 <div class="mb-3">
-                    <label for="tmcItem" class="form-label">ТМЦ</label>
-                    <select class="form-select" id="tmcItem" name="tmcItem.id" required>
+                    <label class="form-label">ТМЦ</label>
+                    <select class="form-select" th:field="*{tmcItem.id}" required>
                         <option value="">Выберите ТМЦ</option>
-                        <option th:each="item : ${tmcItems}" th:value="${item.id}"
-                                th:text="${item.code + ' - ' + item.name}"
-                                th:selected="${norm.tmcItem != null && norm.tmcItem.id == item.id}"></option>
+                        <option th:each="item : ${tmcItems}"
+                                th:value="${item.id}"
+                                th:text="${item.code + ' — ' + item.name}"></option>
                     </select>
-                    <div class="invalid-feedback">Пожалуйста, выберите ТМЦ</div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="profession" class="form-label">Профессия</label>
-                    <select class="form-select" id="profession" name="profession.id" required>
+                    <label class="form-label">Профессия</label>
+                    <select class="form-select" th:field="*{profession.id}" required>
                         <option value="">Выберите профессию</option>
-                        <option th:each="prof : ${professions}" th:value="${prof.id}" th:text="${prof.name}"
-                                th:selected="${norm.profession != null && norm.profession.id == prof.id}"></option>
+                        <option th:each="p : ${professions}"
+                                th:value="${p.id}"
+                                th:text="${p.name}"></option>
                     </select>
-                    <div class="invalid-feedback">Пожалуйста, выберите профессию</div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="quantity" class="form-label">Количество</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" th:value="${norm.quantity}"
-                           min="1" required>
-                    <div class="invalid-feedback">Пожалуйста, введите количество</div>
+                    <label class="form-label">Количество</label>
+                    <input type="number" class="form-control" th:field="*{quantity}" min="1" required>
                 </div>
 
                 <div class="mb-3">
-                    <label for="periodMonths" class="form-label">Период (месяцев)</label>
-                    <input type="number" class="form-control" id="periodMonths" name="periodMonths"
-                           th:value="${norm.periodMonths}" min="1" required>
-                    <div class="invalid-feedback">Пожалуйста, введите период</div>
+                    <label class="form-label">Период (мес.)</label>
+                    <input type="number" class="form-control" th:field="*{periodMonths}" min="1" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Сохранить
+                    <i class="bi bi-check-circle"></i> Сохранить
                 </button>
                 <a href="/norms" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Отмена

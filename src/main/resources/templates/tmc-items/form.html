@@ -2,122 +2,117 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:if="${tmcItem.id == null}">Создание ТМЦ</title>
-    <title th:if="${tmcItem.id != null}">Редактирование ТМЦ</title>
+    <title th:text="${tmcItem.id == null} ? 'Создание ТМЦ' : 'Редактирование ТМЦ'">ТМЦ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <h2 th:if="${tmcItem.id == null}">Новая ТМЦ</h2>
-            <h2 th:if="${tmcItem.id != null}">Редактирование ТМЦ</h2>
+            <h2 th:text="${tmcItem.id == null} ? 'Создание ТМЦ' : 'Редактирование ТМЦ'">ТМЦ</h2>
 
             <form th:action="${tmcItem.id == null} ? @{/tmc-items/create} : @{/tmc-items/edit/{id}(id=${tmcItem.id})}"
-                  method="post" class="needs-validation" novalidate>
+                  th:object="${tmcItem}" method="post">
 
                 <div class="mb-3">
-                    <label for="code" class="form-label">Код</label>
-                    <input type="text" class="form-control" id="code" name="code" th:value="${tmcItem.code}" required>
-                    <div class="invalid-feedback">Пожалуйста, введите код</div>
+                    <label class="form-label">Код</label>
+                    <input type="text" class="form-control" th:field="*{code}" required>
                 </div>
 
                 <div class="mb-3">
-                    <label for="name" class="form-label">Наименование</label>
-                    <input type="text" class="form-control" id="name" name="name" th:value="${tmcItem.name}" required>
-                    <div class="invalid-feedback">Пожалуйста, введите наименование</div>
+                    <label class="form-label">Наименование</label>
+                    <input type="text" class="form-control" th:field="*{name}" required>
                 </div>
 
-                <input type="hidden" name="type.id" th:value="${tmcItem.type.id}">
                 <div class="mb-3">
                     <label class="form-label">Тип ТМЦ</label>
-                    <input type="text" class="form-control"
-                           th:value="${@tmcTypeService.getRussianName(tmcItem.type.name)}" disabled>
-                </div>
-
-                <div class="mb-3">
-                    <label for="unit" class="form-label">Единица измерения</label>
-                    <select class="form-select" id="unit" name="unit.id" required>
-                        <option th:each="u : ${units}" th:value="${u.id}" th:text="${u.code + ' - ' + u.name}"
-                                th:selected="${tmcItem.unit != null && tmcItem.unit.id == u.id}"></option>
+                    <select class="form-select" id="typeSelect" th:field="*{type.id}" required>
+                        <option value="">Выберите тип</option>
+                        <option th:each="t : ${tmcTypes}"
+                                th:value="${t.id}"
+                                th:attr="data-type=${t.name}"
+                                th:text="${@tmcTypeService.getRussianName(t.name)}"></option>
                     </select>
-                    <div class="invalid-feedback">Пожалуйста, выберите единицу измерения</div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="serviceLifeMonths" class="form-label">Срок службы (месяцев)</label>
-                    <input type="number" class="form-control" id="serviceLifeMonths" name="serviceLifeMonths"
-                           th:value="${tmcItem.serviceLifeMonths}" min="1">
+                    <label class="form-label">Единица измерения</label>
+                    <select class="form-select" th:field="*{unit.id}" required>
+                        <option value="">Выберите единицу</option>
+                        <option th:each="u : ${units}"
+                                th:value="${u.id}"
+                                th:text="${u.code + ' — ' + u.name}"></option>
+                    </select>
                 </div>
 
-                <div th:if="${attributeType == 'SIZ'}"
-                     style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-                    <h5>Характеристики СИЗ</h5>
-                    <div class="mb-3">
-                        <label for="size" class="form-label">Размер</label>
-                        <input type="text" class="form-control" id="size" name="size" th:value="${attributes.size}"
-                               placeholder="Например: 42, 100, L">
-                    </div>
-                    <div class="mb-3">
-                        <label for="wearPeriodMonths" class="form-label">Срок носки (месяцев)</label>
-                        <input type="number" class="form-control" id="wearPeriodMonths" name="wearPeriodMonths"
-                               th:value="${attributes.wearPeriodMonths}" min="1">
-                    </div>
-                    <div class="mb-3">
-                        <label for="protectionClass" class="form-label">Класс защиты</label>
-                        <input type="text" class="form-control" id="protectionClass" name="protectionClass"
-                               th:value="${attributes.protectionClass}" placeholder="Например: МУН200, 2 класс">
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Срок службы (мес.)</label>
+                    <input type="number" class="form-control" th:field="*{serviceLifeMonths}" min="1">
                 </div>
 
-                <div th:if="${attributeType == 'TOOL'}"
-                     style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-                    <h5>Характеристики инструмента</h5>
+                <div id="sizAttrs" class="attribute-block mb-3" style="display: none;">
+                    <h5>Атрибуты СИЗ</h5>
                     <div class="mb-3">
-                        <label for="material" class="form-label">Материал</label>
-                        <input type="text" class="form-control" id="material" name="material"
-                               th:value="${attributes.material}" placeholder="Например: Сталь 40Х, Чугун">
+                        <label class="form-label">Размер</label>
+                        <input type="text" class="form-control" name="size"
+                               th:value="${sizAttributes.size}">
                     </div>
                     <div class="mb-3">
-                        <label for="gostNumber" class="form-label">ГОСТ</label>
-                        <input type="text" class="form-control" id="gostNumber" name="gostNumber"
-                               th:value="${attributes.gostNumber}" placeholder="Например: ГОСТ 166-89">
+                        <label class="form-label">Срок носки (мес.)</label>
+                        <input type="number" class="form-control" name="wearPeriodMonths"
+                               th:value="${sizAttributes.wearPeriodMonths}">
                     </div>
                     <div class="mb-3">
-                        <label for="measurementRange" class="form-label">Диапазон измерения</label>
-                        <input type="text" class="form-control" id="measurementRange" name="measurementRange"
-                               th:value="${attributes.measurementRange}" placeholder="Например: 0-150">
+                        <label class="form-label">Класс защиты</label>
+                        <input type="text" class="form-control" name="protectionClass"
+                               th:value="${sizAttributes.protectionClass}">
                     </div>
                 </div>
 
-                <div th:if="${attributeType == 'EQUIPMENT'}"
-                     style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-                    <h5>Характеристики оснастки</h5>
+                <div id="toolAttrs" class="attribute-block mb-3" style="display: none;">
+                    <h5>Атрибуты инструмента</h5>
                     <div class="mb-3">
-                        <label for="drawingNumber" class="form-label">Номер чертежа</label>
-                        <input type="text" class="form-control" id="drawingNumber" name="drawingNumber"
-                               th:value="${attributes.drawingNumber}" placeholder="Например: 1234-5678">
+                        <label class="form-label">Материал</label>
+                        <input type="text" class="form-control" name="material"
+                               th:value="${toolAttributes.material}">
                     </div>
                     <div class="mb-3">
-                        <label for="maxCycles" class="form-label">Ресурс (циклов)</label>
-                        <input type="number" class="form-control" id="maxCycles" name="maxCycles"
-                               th:value="${attributes.maxCycles}" min="1">
+                        <label class="form-label">ГОСТ</label>
+                        <input type="text" class="form-control" name="gostNumber"
+                               th:value="${toolAttributes.gostNumber}">
                     </div>
                     <div class="mb-3">
-                        <label for="machineModel" class="form-label">Модель станка</label>
-                        <input type="text" class="form-control" id="machineModel" name="machineModel"
-                               th:value="${attributes.machineModel}" placeholder="Например: КД-2320">
+                        <label class="form-label">Диапазон измерения</label>
+                        <input type="text" class="form-control" name="measurementRange"
+                               th:value="${toolAttributes.measurementRange}">
+                    </div>
+                </div>
+
+                <div id="equipmentAttrs" class="attribute-block mb-3" style="display: none;">
+                    <h5>Атрибуты оснастки</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Номер чертежа</label>
+                        <input type="text" class="form-control" name="drawingNumber"
+                               th:value="${equipmentAttributes.drawingNumber}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ресурс (циклов)</label>
+                        <input type="number" class="form-control" name="maxCycles"
+                               th:value="${equipmentAttributes.maxCycles}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Модель станка</label>
+                        <input type="text" class="form-control" name="machineModel"
+                               th:value="${equipmentAttributes.machineModel}">
                     </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Сохранить
+                    <i class="bi bi-check-circle"></i> Сохранить
                 </button>
                 <a href="/tmc-items" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Отмена
@@ -127,5 +122,26 @@
     </div>
 </div>
 
+<script>
+    (function () {
+        const typeSelect = document.getElementById('typeSelect');
+        const blocks = {
+            SIZ: document.getElementById('sizAttrs'),
+            TOOL: document.getElementById('toolAttrs'),
+            EQUIPMENT: document.getElementById('equipmentAttrs')
+        };
+
+        function refreshBlocks() {
+            const selected = typeSelect.options[typeSelect.selectedIndex];
+            const type = selected ? selected.getAttribute('data-type') : null;
+
+            Object.values(blocks).forEach(b => b && (b.style.display = 'none'));
+            if (type && blocks[type]) blocks[type].style.display = 'block';
+        }
+
+        typeSelect.addEventListener('change', refreshBlocks);
+        refreshBlocks();
+    })();
+</script>
 </body>
 </html>

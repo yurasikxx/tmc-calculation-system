@@ -27,11 +27,48 @@ public class NormService {
     public Page<Norm> findAllForCurrentUser(Pageable pageable) {
         String role = getCurrentUserRole();
         return switch (role) {
-            case "ROLE_OT" -> normRepository.findByTmcTypeName("SIZ", pageable);
-            case "ROLE_TECHNOLOG" -> normRepository.findByTmcTypeName("EQUIPMENT", pageable);
-            case "ROLE_STOREKEEPER" -> normRepository.findByTmcTypeName("TOOL", pageable);
-            case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> normRepository.findAll(pageable);
+            case "ROLE_OT" -> normRepository.findByTmcTypeNameIn(List.of("SIZ"), pageable);
+            case "ROLE_TECHNOLOG" -> normRepository.findByTmcTypeNameIn(List.of("TOOL", "EQUIPMENT"), pageable);
+            case "ROLE_STOREKEEPER", "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> normRepository.findAll(pageable);
             default -> Page.empty(pageable);
+        };
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Norm> findByTypeForCurrentUser(String type, Pageable pageable) {
+        List<String> allowed = getAvailableTypeNames();
+        if (type == null || type.isEmpty() || !allowed.contains(type)) {
+            return Page.empty(pageable);
+        }
+        return normRepository.findByTmcTypeNameIn(List.of(type), pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Norm> findBySearchForCurrentUser(String search, Pageable pageable) {
+        List<String> allowed = getAvailableTypeNames();
+        if (allowed.isEmpty()) return Page.empty(pageable);
+        String pattern = (search == null || search.isEmpty()) ? null : search.toLowerCase().trim();
+        return normRepository.findByTypeNamesAndSearch(allowed, pattern, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Norm> findByTypeAndSearchForCurrentUser(
+            String type, String search, Pageable pageable) {
+        List<String> allowed = getAvailableTypeNames();
+        if (type == null || type.isEmpty() || !allowed.contains(type)) {
+            return Page.empty(pageable);
+        }
+        String pattern = (search == null || search.isEmpty()) ? null : search.toLowerCase().trim();
+        return normRepository.findByTypeNamesAndSearch(List.of(type), pattern, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getAvailableTypeNames() {
+        return switch (getCurrentUserRole()) {
+            case "ROLE_OT" -> List.of("SIZ");
+            case "ROLE_TECHNOLOG" -> List.of("TOOL", "EQUIPMENT");
+            case "ROLE_STOREKEEPER", "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> List.of("SIZ", "TOOL", "EQUIPMENT");
+            default -> List.of();
         };
     }
 
@@ -81,7 +118,6 @@ public class NormService {
         if (norm.getQuantity() <= 0) {
             throw new RuntimeException("Quantity must be positive");
         }
-
         if (norm.getPeriodMonths() <= 0) {
             throw new RuntimeException("Period months must be positive");
         }
@@ -114,11 +150,9 @@ public class NormService {
         if (updatedNorm.getQuantity() != null && updatedNorm.getQuantity() > 0) {
             existing.setQuantity(updatedNorm.getQuantity());
         }
-
         if (updatedNorm.getPeriodMonths() != null && updatedNorm.getPeriodMonths() > 0) {
             existing.setPeriodMonths(updatedNorm.getPeriodMonths());
         }
-
         if (updatedNorm.getTmcItem() != null && updatedNorm.getTmcItem().getId() != null) {
             TmcItem tmcItem = tmcItemService.findById(updatedNorm.getTmcItem().getId());
             if (!tmcItemService.hasAccessToTmcItem(tmcItem)) {
@@ -126,7 +160,6 @@ public class NormService {
             }
             existing.setTmcItem(tmcItem);
         }
-
         if (updatedNorm.getProfession() != null && updatedNorm.getProfession().getId() != null) {
             Profession profession = professionService.findById(updatedNorm.getProfession().getId());
             existing.setProfession(profession);
@@ -138,11 +171,9 @@ public class NormService {
     @Transactional
     public void delete(Long id) {
         Norm norm = findById(id);
-
         if (!tmcItemService.hasAccessToTmcItem(norm.getTmcItem())) {
             throw new RuntimeException("You don't have permission to delete norms for this type of TMC");
         }
-
         normRepository.delete(norm);
     }
 
