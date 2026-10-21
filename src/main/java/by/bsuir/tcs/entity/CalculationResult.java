@@ -33,11 +33,17 @@ public class CalculationResult {
     @Column(name = "period_year", nullable = false)
     private Integer periodYear;
 
+    @Column(name = "source", nullable = false, length = 20)
+    private String source;
+
     @Column(name = "calculation_date", updatable = false)
     private LocalDateTime calculationDate;
 
     @PrePersist
     protected void onCreate() {
         calculationDate = LocalDateTime.now();
+        if (source == null) {
+            source = "NORM_BASE";
+        }
     }
 }

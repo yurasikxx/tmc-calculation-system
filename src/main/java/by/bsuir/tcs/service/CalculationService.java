@@ -1,12 +1,13 @@
 package by.bsuir.tcs.service;
 
 import by.bsuir.tcs.entity.CalculationResult;
+import by.bsuir.tcs.entity.Employee;
+import by.bsuir.tcs.entity.IssuedItem;
 import by.bsuir.tcs.entity.Norm;
 import by.bsuir.tcs.entity.Profession;
 import by.bsuir.tcs.entity.StaffingPlan;
 import by.bsuir.tcs.entity.TmcItem;
-import by.bsuir.tcs.repository.NormRepository;
-import by.bsuir.tcs.repository.StaffingPlanRepository;
+import by.bsuir.tcs.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,8 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +25,9 @@ public class CalculationService {
 
     private final StaffingPlanRepository staffingPlanRepository;
     private final NormRepository normRepository;
+    private final EmployeeRepository employeeRepository;
+    private final IssuedItemRepository issuedItemRepository;
+    private final CalculationResultRepository calculationResultRepository;
     private final CalculationResultService calculationResultService;
     private final TmcItemService tmcItemService;
 
@@ -32,63 +38,88 @@ public class CalculationService {
 
         calculationResultService.clearByPeriod(year, month);
 
+        Map<Long, Integer> employeesByProfession = employeeRepository.findAll().stream()
+                .filter(e -> !e.getHireDate().isAfter(end)
+                        && (e.getTerminationDate() == null
+                        || !e.getTerminationDate().isBefore(start)))
+                .collect(Collectors.groupingBy(
+                        e -> e.getProfession().getId(),
+                        Collectors.summingInt(e -> 1)));
+
+        Map<Long, Double> normBase = new HashMap<>();
+        for (Norm norm : normRepository.findAll()) {
+            int cnt = employeesByProfession.getOrDefault(norm.getProfession().getId(), 0);
+            if (cnt > 0) {
+                double monthly = norm.getQuantity() * (double) cnt / norm.getPeriodMonths();
+                normBase.merge(norm.getTmcItem().getId(), monthly, Double::sum);
+            }
+        }
+
         List<StaffingPlan> plans = staffingPlanRepository.findByEffectiveDateBetween(start, end);
 
-        Map<Long, Integer> aggregated = new HashMap<>();
-
+        Map<Long, Integer> hire = new HashMap<>();
         for (StaffingPlan plan : plans) {
-            Profession profession = getProfessionForPlan(plan);
+            Profession profession = getProfessionForHire(plan);
+            if (profession == null) continue;
 
-            if (profession == null) {
-                continue;
-            }
-
-            List<Norm> norms = normRepository.findByProfessionId(profession.getId());
-
-            if (norms.isEmpty()) {
-                continue;
-            }
-
-            for (Norm norm : norms) {
-                Long tmcId = norm.getTmcItem().getId();
-                aggregated.put(tmcId, aggregated.getOrDefault(tmcId, 0) + norm.getQuantity());
+            for (Norm norm : normRepository.findByProfessionId(profession.getId())) {
+                hire.merge(norm.getTmcItem().getId(), norm.getQuantity(), Integer::sum);
             }
         }
 
-        saveCalculationResults(aggregated, year, month);
+        List<IssuedItem> expiring = issuedItemRepository
+                .findExpiringBetween(start, end.plusDays(1));
+
+        Map<Long, Integer> replacement = expiring.stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.getTmcItem().getId(),
+                        Collectors.summingInt(IssuedItem::getQuantity)));
+
+        saveResultsDouble(normBase, "NORM_BASE", year, month);
+        saveResultsInt(hire, "HIRE", year, month);
+        saveResultsInt(replacement, "REPLACEMENT", year, month);
     }
 
-    private Profession getProfessionForPlan(StaffingPlan plan) {
-        if ("TERMINATE".equals(plan.getActionType())) {
-            return null;
-        }
-
-        if ("HIRE".equals(plan.getActionType())) {
-            return plan.getNewProfession();
-        }
-
-        if ("TRANSFER".equals(plan.getActionType())) {
-            return plan.getNewProfession();
-        }
-
-        return null;
+    private Profession getProfessionForHire(StaffingPlan plan) {
+        return switch (plan.getActionType()) {
+            case "HIRE", "TRANSFER" -> plan.getNewProfession();
+            default -> null;
+        };
     }
 
-    private void saveCalculationResults(Map<Long, Integer> aggregated, Integer year, Integer month) {
-        for (Map.Entry<Long, Integer> entry : aggregated.entrySet()) {
-            Long tmcId = entry.getKey();
-            Integer quantity = entry.getValue();
-
-            TmcItem tmcItem = tmcItemService.findById(tmcId);
-
-            CalculationResult result = CalculationResult.builder()
-                    .tmcItem(tmcItem)
-                    .requiredQuantity(quantity)
-                    .periodMonth(month)
-                    .periodYear(year)
-                    .build();
-
-            calculationResultService.save(result);
+    private void saveResultsDouble(Map<Long, Double> data, String source, Integer year, Integer month) {
+        for (Map.Entry<Long, Double> e : data.entrySet()) {
+            int qty = (int) Math.round(e.getValue());
+            if (qty <= 0) continue;
+            saveResult(e.getKey(), qty, source, year, month);
         }
+    }
+
+    private void saveResultsInt(Map<Long, Integer> data, String source, Integer year, Integer month) {
+        for (Map.Entry<Long, Integer> e : data.entrySet()) {
+            if (e.getValue() == null || e.getValue() <= 0) continue;
+            saveResult(e.getKey(), e.getValue(), source, year, month);
+        }
+    }
+
+    private void saveResult(Long tmcId, int qty, String source,
+                            Integer year, Integer month) {
+        TmcItem tmcItem = tmcItemService.findById(tmcId);
+
+        Optional<CalculationResult> existing =
+                calculationResultRepository
+                        .findByPeriodYearAndPeriodMonthAndSourceAndTmcItemId(
+                                year, month, source, tmcId);
+
+        CalculationResult result = existing.orElseGet(() ->
+                CalculationResult.builder()
+                        .tmcItem(tmcItem)
+                        .periodMonth(month)
+                        .periodYear(year)
+                        .source(source)
+                        .build());
+
+        result.setRequiredQuantity(qty);
+        calculationResultService.save(result);
     }
 }

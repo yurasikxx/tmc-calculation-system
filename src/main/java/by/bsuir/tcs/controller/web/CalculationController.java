@@ -62,26 +62,37 @@ public class CalculationController {
     public String history(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) String source,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "25") int size,
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(defaultValue = "periodYear") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
             Model model) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "calculationDate"));
-        Page<CalculationResult> resultPage;
+        Sort.Direction dir = Sort.Direction.fromString(sortDir);
+        Sort sort = "tmcItem.name".equals(sortBy)
+                ? Sort.by(dir, sortBy).and(Sort.by(dir, "periodYear", "periodMonth"))
+                : Sort.by(dir, sortBy);
 
-        if (year != null && month != null) {
-            resultPage = calculationResultService.findByPeriod(year, month, pageable);
-        } else {
-            resultPage = calculationResultService.findAll(pageable);
-        }
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<CalculationResult> resultPage =
+                calculationResultService.findFiltered(year, month, source, pageable);
 
         model.addAttribute("results", resultPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", resultPage.getTotalPages());
         model.addAttribute("totalItems", resultPage.getTotalElements());
         model.addAttribute("size", size);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         model.addAttribute("selectedYear", year);
         model.addAttribute("selectedMonth", month);
+        model.addAttribute("selectedSource", source);
+        model.addAttribute("years",
+                java.util.stream.IntStream.rangeClosed(2020, 2027).boxed().toList());
+        model.addAttribute("sources",
+                java.util.List.of("NORM_BASE", "HIRE", "REPLACEMENT"));
 
         return "calculations/history";
     }

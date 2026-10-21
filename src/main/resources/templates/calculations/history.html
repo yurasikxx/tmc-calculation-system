@@ -22,80 +22,132 @@
 
     <div class="row mb-3 g-2 align-items-end">
         <div class="col-md-3">
-            <form method="get" id="periodForm">
+            <form method="get">
+                <input type="hidden" name="size" th:value="${size}">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="sortDir" th:value="${sortDir}">
+                <input type="hidden" name="source" th:value="${selectedSource}">
                 <label class="form-label">Период</label>
                 <div class="row g-2">
                     <div class="col-6">
                         <select class="form-select" name="month" onchange="this.form.submit()">
                             <option value="">Месяц</option>
-                            <option value="1" th:selected="${selectedMonth == 1}">Январь</option>
-                            <option value="2" th:selected="${selectedMonth == 2}">Февраль</option>
-                            <option value="3" th:selected="${selectedMonth == 3}">Март</option>
-                            <option value="4" th:selected="${selectedMonth == 4}">Апрель</option>
-                            <option value="5" th:selected="${selectedMonth == 5}">Май</option>
-                            <option value="6" th:selected="${selectedMonth == 6}">Июнь</option>
-                            <option value="7" th:selected="${selectedMonth == 7}">Июль</option>
-                            <option value="8" th:selected="${selectedMonth == 8}">Август</option>
-                            <option value="9" th:selected="${selectedMonth == 9}">Сентябрь</option>
-                            <option value="10" th:selected="${selectedMonth == 10}">Октябрь</option>
-                            <option value="11" th:selected="${selectedMonth == 11}">Ноябрь</option>
-                            <option value="12" th:selected="${selectedMonth == 12}">Декабрь</option>
+                            <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}"
+                                    th:selected="${selectedMonth == m}"
+                                    th:text="${m}"></option>
                         </select>
                     </div>
                     <div class="col-6">
                         <select class="form-select" name="year" onchange="this.form.submit()">
                             <option value="">Год</option>
-                            <option value="2024" th:selected="${selectedYear == 2025}">2025</option>
-                            <option value="2025" th:selected="${selectedYear == 2026}">2026</option>
-                            <option value="2026" th:selected="${selectedYear == 2027}">2027</option>
-                            <option value="2027" th:selected="${selectedYear == 2028}">2028</option>
-                            <option value="2028" th:selected="${selectedYear == 2029}">2029</option>
+                            <option th:each="y : ${years}" th:value="${y}"
+                                    th:selected="${selectedYear == y}"
+                                    th:text="${y}"></option>
                         </select>
                     </div>
                 </div>
             </form>
         </div>
         <div class="col-md-2">
-            <form method="get" id="sizeForm">
-                <label for="sizeSelect" class="form-label">Записей</label>
-                <select class="form-select" id="sizeSelect" name="size" onchange="this.form.submit()">
-                    <option value="5" th:selected="${size == 5}">5</option>
-                    <option value="10" th:selected="${size == 10}">10</option>
-                    <option value="25" th:selected="${size == 25}">25</option>
-                    <option value="50" th:selected="${size == 50}">50</option>
+            <form method="get">
+                <input type="hidden" name="size" th:value="${size}">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="sortDir" th:value="${sortDir}">
+                <input type="hidden" name="year" th:value="${selectedYear}">
+                <input type="hidden" name="month" th:value="${selectedMonth}">
+                <label class="form-label">Источник</label>
+                <select class="form-select" name="source" onchange="this.form.submit()">
+                    <option value="">Все</option>
+                    <option th:each="s : ${sources}" th:value="${s}"
+                            th:selected="${selectedSource == s}"
+                            th:text="${s == 'NORM_BASE' ? 'Норма' : (s == 'HIRE' ? 'Приём' : 'Замена')}"></option>
                 </select>
             </form>
         </div>
-        <div class="col-md-2 text-end">
+        <div class="col-md-2">
+            <form method="get">
+                <input type="hidden" name="year" th:value="${selectedYear}">
+                <input type="hidden" name="month" th:value="${selectedMonth}">
+                <input type="hidden" name="source" th:value="${selectedSource}">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="sortDir" th:value="${sortDir}">
+                <label class="form-label">Записей</label>
+                <select class="form-select" name="size" onchange="this.form.submit()">
+                    <option value="25" th:selected="${size == 25}">25</option>
+                    <option value="50" th:selected="${size == 50}">50</option>
+                    <option value="100" th:selected="${size == 100}">100</option>
+                    <option value="200" th:selected="${size == 200}">200</option>
+                </select>
+            </form>
+        </div>
+        <div class="col-md-1">
             <a href="/calculations/history" class="btn btn-secondary">
-                <i class="bi bi-arrow-counterclockwise"></i> Сбросить
+                <i class="bi bi-arrow-counterclockwise"></i>
             </a>
         </div>
         <div class="col-md-2 text-end">
-            <span class="text-muted">
-                Всего: <strong th:text="${totalItems}">0</strong>
-            </span>
+            <span class="text-muted">Всего: <strong th:text="${totalItems}">0</strong></span>
         </div>
     </div>
 
     <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-striped table-hover align-middle">
             <thead>
             <tr>
-                <th>Период</th>
-                <th>ТМЦ</th>
-                <th>Код</th>
-                <th class="text-end">Количество</th>
-                <th>Дата расчёта</th>
+                <th>
+                    <a th:href="@{/calculations/history(page=0, size=${size}, sortBy='periodYear', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}"
+                       class="text-decoration-none text-dark">Период
+                        <i th:if="${sortBy == 'periodYear'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/calculations/history(page=0, size=${size}, sortBy='tmcItem.name', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}"
+                       class="text-decoration-none text-dark">ТМЦ
+                        <i th:if="${sortBy == 'tmcItem.name'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/calculations/history(page=0, size=${size}, sortBy='source', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}"
+                       class="text-decoration-none text-dark">Источник
+                        <i th:if="${sortBy == 'source'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th class="text-end">
+                    <a th:href="@{/calculations/history(page=0, size=${size}, sortBy='requiredQuantity', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}"
+                       class="text-decoration-none text-dark">Количество
+                        <i th:if="${sortBy == 'requiredQuantity'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/calculations/history(page=0, size=${size}, sortBy='calculationDate', sortDir=${reverseSortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}"
+                       class="text-decoration-none text-dark">Дата расчёта
+                        <i th:if="${sortBy == 'calculationDate'}"
+                           th:class="${sortDir == 'asc'} ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                    </a>
+                </th>
                 <th>Действия</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="result : ${results}">
-                <td><span class="badge bg-secondary" th:text="${result.periodMonth} + '/' + ${result.periodYear}">06/2026</span>
+                <td>
+                    <span class="badge bg-secondary"
+                          th:text="${result.periodMonth} + '/' + ${result.periodYear}">6/2026</span>
                 </td>
-                <td th:text="${result.tmcItem.name}">Штангенциркуль</td>
-                <td th:text="${result.tmcItem.code}">И00000001</td>
+                <td>
+                    <span th:text="${result.tmcItem.code}">И00000001</span> —
+                    <span th:text="${result.tmcItem.name}">Штангенциркуль</span>
+                </td>
+                <td>
+                    <span th:if="${result.source == 'NORM_BASE'}" class="badge bg-primary">Норма</span>
+                    <span th:if="${result.source == 'HIRE'}" class="badge bg-success">Приём</span>
+                    <span th:if="${result.source == 'REPLACEMENT'}" class="badge bg-warning text-dark">Замена</span>
+                    <span th:if="${result.source == 'MANUAL'}" class="badge bg-secondary">Ручной</span>
+                </td>
                 <td class="text-end fw-bold" th:text="${result.requiredQuantity}">5</td>
                 <td th:text="${#temporals.format(result.calculationDate, 'dd.MM.yyyy HH:mm')}">10.08.2026 14:30</td>
                 <td>
@@ -119,24 +171,47 @@
         </table>
     </div>
 
-    <nav th:if="${totalPages > 0}">
+    <nav th:if="${totalPages > 1}">
         <ul class="pagination justify-content-center">
             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
                 <a class="page-link"
-                   th:href="@{/calculations/history(page=${currentPage - 1}, size=${size}, year=${selectedYear}, month=${selectedMonth})}">
+                   th:href="@{/calculations/history(page=0, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                <a class="page-link"
+                   th:href="@{/calculations/history(page=${currentPage - 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             </li>
-            <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
-                class="page-item" th:classappend="${pageNum == currentPage} ? 'active' : ''">
+
+            <th:block th:with="start=${currentPage - 2 < 0 ? 0 : currentPage - 2},
+                               end=${currentPage + 2 >= totalPages ? totalPages - 1 : currentPage + 2}">
+                <li th:if="${start > 0}" class="page-item disabled">
+                    <span class="page-link">…</span>
+                </li>
+                <li th:each="p : ${#numbers.sequence(start, end)}"
+                    class="page-item" th:classappend="${p == currentPage} ? 'active' : ''">
+                    <a class="page-link"
+                       th:href="@{/calculations/history(page=${p}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}"
+                       th:text="${p + 1}">1</a>
+                </li>
+                <li th:if="${end < totalPages - 1}" class="page-item disabled">
+                    <span class="page-link">…</span>
+                </li>
+            </th:block>
+
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
                 <a class="page-link"
-                   th:href="@{/calculations/history(page=${pageNum}, size=${size}, year=${selectedYear}, month=${selectedMonth})}"
-                   th:text="${pageNum + 1}">1</a>
+                   th:href="@{/calculations/history(page=${currentPage + 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
             </li>
             <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
                 <a class="page-link"
-                   th:href="@{/calculations/history(page=${currentPage + 1}, size=${size}, year=${selectedYear}, month=${selectedMonth})}">
-                    <i class="bi bi-chevron-right"></i>
+                   th:href="@{/calculations/history(page=${totalPages - 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, year=${selectedYear}, month=${selectedMonth}, source=${selectedSource})}">
+                    <i class="bi bi-chevron-double-right"></i>
                 </a>
             </li>
         </ul>

@@ -29,6 +29,10 @@ public class IssuedItem {
     @JoinColumn(name = "tmc_item_id", nullable = false)
     private TmcItem tmcItem;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "norm_id")
+    private Norm norm;
+
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
