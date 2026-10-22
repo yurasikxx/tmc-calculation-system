@@ -286,6 +286,34 @@ INSERT INTO norms (tmc_id, profession_id, quantity, period_months) VALUES
     ((SELECT id FROM tmc_items WHERE code='С00000004'), 26, 6, 1),
     ((SELECT id FROM tmc_items WHERE code='С00000004'), 27, 6, 1),
 
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 1,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 2,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 3,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 4,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 5,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 6,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 7,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 8,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 9,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 10, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 11, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 12, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 13, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 14, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 15, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 16, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 17, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 18, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 19, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 20, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 21, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 22, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 23, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 24, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 25, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 26, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='С00000006'), 27, 1, 24),
+
     ((SELECT id FROM tmc_items WHERE code='С00000007'), 4,  1, 24),
     ((SELECT id FROM tmc_items WHERE code='С00000007'), 6,  1, 24),
     ((SELECT id FROM tmc_items WHERE code='С00000007'), 8,  1, 24),
@@ -431,11 +459,47 @@ INSERT INTO norms (tmc_id, profession_id, quantity, period_months) VALUES
     ((SELECT id FROM tmc_items WHERE code='С00000029'), 17, 6, 1),
     ((SELECT id FROM tmc_items WHERE code='С00000029'), 21, 6, 1),
 
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 4,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 5,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 6,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 7,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 8,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 9,  1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 10, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 11, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 12, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 13, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 14, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 15, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 16, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 18, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 24, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 25, 1, 24),
+    ((SELECT id FROM tmc_items WHERE code='И00000001'), 26, 1, 24),
+
     ((SELECT id FROM tmc_items WHERE code='И00000002'), 4,  1, 36),
     ((SELECT id FROM tmc_items WHERE code='И00000002'), 6,  1, 36),
     ((SELECT id FROM tmc_items WHERE code='И00000002'), 8,  1, 36),
     ((SELECT id FROM tmc_items WHERE code='И00000002'), 9,  1, 36),
     ((SELECT id FROM tmc_items WHERE code='И00000002'), 26, 1, 36),
+
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 4,  1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 5,  1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 6,  1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 7,  1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 8,  1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 9,  1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 10, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 11, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 12, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 13, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 14, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 15, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 16, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 18, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 24, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 25, 1, 36),
+    ((SELECT id FROM tmc_items WHERE code='И00000003'), 26, 1, 36),
 
     ((SELECT id FROM tmc_items WHERE code='И00000004'), 4,  1, 12),
     ((SELECT id FROM tmc_items WHERE code='И00000004'), 6,  1, 12),
@@ -649,26 +713,26 @@ UPDATE employees SET termination_date = '2026-03-31' WHERE full_name = 'Дубр
 UPDATE employees SET termination_date = '2026-06-30' WHERE full_name = 'Сафронов Александр Валерьевич';
 
 INSERT INTO employees (full_name, hire_date, profession_id, department_id) VALUES
-    ('Петров Артём Сергеевич',    '2025-01-15',  4, 2),
-    ('Сидоров Никита Иванович',   '2025-02-10',  6, 2),
-    ('Ковалёв Данила Андреевич',  '2025-03-05', 13, 3),
-    ('Лебедев Матвей Олегович',   '2025-04-20', 14, 5),
-    ('Орлов Александр Дмитриевич','2025-05-12', 17, 6),
-    ('Ветров Евгений Игоревич',   '2025-06-08',  1, 1),
-    ('Гринёв Антон Валерьевич',   '2025-07-15', 12, 4),
-    ('Дроздов Илья Сергеевич',    '2025-08-22', 21, 7),
-    ('Жуков Даниил Петрович',     '2025-09-10', 24, 8),
-    ('Иванов Степан Андреевич',   '2025-10-05',  4, 2),
-    ('Кириллов Роман Олегович',   '2026-01-18',  6, 3),
-    ('Лавров Максим Ильич',       '2026-02-12', 13, 5),
-    ('Миронов Дмитрий Сергеевич', '2026-03-08', 14, 2),
-    ('Никитин Виктор Андреевич',  '2026-04-22', 16, 6),
-    ('Осипов Глеб Николаевич',    '2026-05-15', 17, 6),
-    ('Павлов Артур Валерьевич',   '2026-06-10', 11, 4),
-    ('Родин Кирилл Петрович',     '2026-07-05', 12, 3),
-    ('Соколов Ярослав Ильич',     '2026-08-20', 21, 7),
-    ('Тарасов Егор Максимович',   '2026-09-12', 24, 8),
-    ('Ушаков Никита Олегович',    '2026-10-01',  4, 2)
+    ('Петров Артём Сергеевич',    '2020-03-15',  4, 2),
+    ('Сидоров Никита Иванович',   '2020-09-10',  6, 2),
+    ('Ковалёв Данила Андреевич',  '2021-02-05', 13, 3),
+    ('Лебедев Матвей Олегович',   '2021-08-20', 14, 5),
+    ('Орлов Александр Дмитриевич','2022-01-12', 17, 6),
+    ('Ветров Евгений Игоревич',   '2022-06-08',  1, 1),
+    ('Гринёв Антон Валерьевич',   '2022-11-15', 12, 4),
+    ('Дроздов Илья Сергеевич',    '2023-03-22', 21, 7),
+    ('Жуков Даниил Петрович',     '2023-08-10', 24, 8),
+    ('Иванов Степан Андреевич',   '2024-01-05',  4, 2),
+    ('Кириллов Роман Олегович',   '2024-05-18',  6, 3),
+    ('Лавров Максим Ильич',       '2024-10-12', 13, 5),
+    ('Миронов Дмитрий Сергеевич', '2025-02-08', 14, 2),
+    ('Никитин Виктор Андреевич',  '2025-06-22', 16, 6),
+    ('Осипов Глеб Николаевич',    '2025-09-15', 17, 6),
+    ('Павлов Артур Валерьевич',   '2026-01-10', 11, 4),
+    ('Родин Кирилл Петрович',     '2026-03-05', 12, 3),
+    ('Соколов Ярослав Ильич',     '2026-05-20', 21, 7),
+    ('Тарасов Егор Максимович',   '2026-07-12', 24, 8),
+    ('Ушаков Никита Олегович',    '2026-09-01',  4, 2)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO users (username, password_hash, employee_id, role_id, is_active) VALUES
@@ -878,7 +942,7 @@ DO $$
                 FOR issued_rec IN
                     SELECT ii.*
                     FROM issued_items ii
-                             JOIN tmc_items t ON t.id = ii.tmc_item_id
+                    JOIN tmc_items t ON t.id = ii.tmc_item_id
                     WHERE ii.status = 'ISSUED'
                       AND ii.expected_return_date >= m_start
                       AND ii.expected_return_date <  m_end
@@ -903,6 +967,15 @@ DO $$
                             'ISSUED'
                         FROM tmc_items t WHERE t.id = issued_rec.tmc_item_id;
                     END LOOP;
+
+                UPDATE issued_items ii
+                SET expected_return_date = ii.expected_return_date
+                    + make_interval(months => COALESCE(t.service_life_months, 1))
+                FROM tmc_items t
+                WHERE t.id = ii.tmc_item_id
+                  AND ii.status = 'ISSUED'
+                  AND ii.expected_return_date < m_end
+                  AND COALESCE(t.service_life_months, 12) < 3;
 
                 INSERT INTO calculation_results(
                     tmc_id, required_quantity, period_month, period_year, source)

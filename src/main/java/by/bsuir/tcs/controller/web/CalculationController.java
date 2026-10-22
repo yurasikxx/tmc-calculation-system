@@ -43,10 +43,12 @@ public class CalculationController {
             calculationService.calculate(year, month);
 
             List<ReportItemDto> report = reportService.getReportByPeriod(year, month);
-            Map<String, List<ReportItemDto>> groupedByType = reportService.groupByTmcType(year, month);
+            Map<String, List<ReportItemDto>> groupedByType =
+                    reportService.groupByTmcType(year, month);
 
             model.addAttribute("year", year);
             model.addAttribute("month", month);
+            model.addAttribute("monthName", monthName(month));
             model.addAttribute("report", report);
             model.addAttribute("groupedByType", groupedByType);
 
@@ -89,10 +91,9 @@ public class CalculationController {
         model.addAttribute("selectedYear", year);
         model.addAttribute("selectedMonth", month);
         model.addAttribute("selectedSource", source);
-        model.addAttribute("years",
-                java.util.stream.IntStream.rangeClosed(2020, 2027).boxed().toList());
-        model.addAttribute("sources",
-                java.util.List.of("NORM_BASE", "HIRE", "REPLACEMENT"));
+        model.addAttribute("years", java.util.stream.IntStream.rangeClosed(2020, 2030).boxed().toList());
+        model.addAttribute("sources", java.util.List.of("NORM_BASE", "HIRE", "REPLACEMENT"));
+        model.addAttribute("calcController", this);
 
         return "calculations/history";
     }
@@ -104,10 +105,12 @@ public class CalculationController {
             Model model) {
 
         List<ReportItemDto> report = reportService.getReportByPeriod(year, month);
-        Map<String, List<ReportItemDto>> groupedByType = reportService.groupByTmcType(year, month);
+        Map<String, List<ReportItemDto>> groupedByType =
+                reportService.groupByTmcType(year, month);
 
         model.addAttribute("year", year);
         model.addAttribute("month", month);
+        model.addAttribute("monthName", monthName(month));
         model.addAttribute("report", report);
         model.addAttribute("groupedByType", groupedByType);
 
@@ -120,8 +123,19 @@ public class CalculationController {
             calculationResultService.delete(id);
             redirectAttributes.addFlashAttribute("success", "Расчёт успешно удалён");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении расчёта: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error",
+                    "Ошибка при удалении расчёта: " + e.getMessage());
         }
         return "redirect:/calculations/history";
     }
+
+    public String monthName(Integer month) {
+        if (month == null || month < 1 || month > 12) return "—";
+        return MONTHS_RU[month - 1];
+    }
+
+    private static final String[] MONTHS_RU = {
+            "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+            "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+    };
 }

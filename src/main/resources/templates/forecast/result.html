@@ -21,12 +21,18 @@
                 · Надёжность:
                 <span class="badge" th:classappend="${reliabilityBadge}"
                       th:text="${reliabilityLabel}">высокая</span>
+                <span th:if="${not #lists.isEmpty(forecast)}">
+                    · <span th:text="${forecast[0].label}">Ноябрь 2026</span>
+                    — <span th:text="${forecast[forecast.size()-1].label}">Октябрь 2027</span>
+                </span>
             </small>
         </div>
         <div>
-            <a th:href="@{/forecast/export(tmcId=${tmcId}, steps=${steps})}"
-               class="btn btn-success">
-                <i class="bi bi-file-earmark-excel"></i> Экспорт
+            <a th:href="@{/forecast/export/excel(tmcId=${tmcId}, steps=${steps})}" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+            <a th:href="@{/forecast/export/pdf(tmcId=${tmcId}, steps=${steps})}" class="btn btn-danger">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
             </a>
             <a href="/forecast" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Новый прогноз
@@ -70,7 +76,7 @@
                         </thead>
                         <tbody>
                         <tr th:each="point : ${forecast}">
-                            <td th:text="'Месяц ' + ${point.step}">1</td>
+                            <td th:text="${point.label}">Ноябрь 2026</td>
                             <td class="fw-bold text-end"
                                 th:text="${#numbers.formatDecimal(point.value, 1, 2, 'COMMA')}">10,50
                             </td>
@@ -100,7 +106,7 @@
 </div>
 
 <script th:inline="javascript">
-    const labels = /*[[${forecast.![#this.step]}]]*/ [];
+    const labels = /*[[${forecast.![#this.shortLabel]}]]*/ [];
     const values = /*[[${forecast.![#this.value]}]]*/ [];
     const lower = /*[[${forecast.![#this.lowerBound]}]]*/ [];
     const upper = /*[[${forecast.![#this.upperBound]}]]*/ [];
@@ -135,7 +141,7 @@
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels.map(l => 'Месяц ' + l),
+            labels: labels,
             datasets: [
                 {
                     label: 'Прогноз',
@@ -171,7 +177,10 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: {legend: {position: 'bottom'}},
-            scales: {y: {beginAtZero: true}}
+            scales: {
+                y: {beginAtZero: true},
+                x: {ticks: {maxRotation: 45, minRotation: 45}}
+            }
         },
         plugins: [ciBandPlugin]
     });

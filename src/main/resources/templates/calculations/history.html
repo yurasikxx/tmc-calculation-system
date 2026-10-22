@@ -31,10 +31,10 @@
                 <div class="row g-2">
                     <div class="col-6">
                         <select class="form-select" name="month" onchange="this.form.submit()">
-                            <option value="">Месяц</option>
+                            <option value="">Все месяцы</option>
                             <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}"
                                     th:selected="${selectedMonth == m}"
-                                    th:text="${m}"></option>
+                                    th:text="${calcController.monthName(m)}"></option>
                         </select>
                     </div>
                     <div class="col-6">
@@ -136,7 +136,7 @@
             <tr th:each="result : ${results}">
                 <td>
                     <span class="badge bg-secondary"
-                          th:text="${result.periodMonth} + '/' + ${result.periodYear}">6/2026</span>
+                          th:text="${calcController.monthName(result.periodMonth)} + ' ' + ${result.periodYear}">Июнь 2026</span>
                 </td>
                 <td>
                     <span th:text="${result.tmcItem.code}">И00000001</span> —

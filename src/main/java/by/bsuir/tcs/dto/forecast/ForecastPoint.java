@@ -21,4 +21,14 @@ public class ForecastPoint {
 
     @JsonProperty("upper_bound")
     private Double upperBound;
+
+    @JsonProperty("period_year")
+    private Integer periodYear;
+
+    @JsonProperty("period_month")
+    private Integer periodMonth;
+
+    private String label;
+
+    private String shortLabel;
 }

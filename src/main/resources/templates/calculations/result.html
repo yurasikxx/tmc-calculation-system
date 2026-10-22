@@ -12,26 +12,30 @@
 
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Результаты расчёта за <span th:text="${month} + '/' + ${year}">6/2026</span></h2>
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2>Результаты расчёта за
+            <span th:text="${monthName} + ' ' + ${year}">Октябрь 2026</span>
+        </h2>
         <div>
             <a href="/calculations" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Новый расчёт
             </a>
             <a th:href="@{/api/reports/export/excel(year=${year}, month=${month})}" class="btn btn-success">
-                <i class="bi bi-file-earmark-excel"></i> Экспорт в Excel
+                <i class="bi bi-file-earmark-excel"></i> Excel
             </a>
             <a th:href="@{/api/reports/export/pdf(year=${year}, month=${month})}" class="btn btn-danger">
-                <i class="bi bi-file-earmark-pdf"></i> Экспорт в PDF
+                <i class="bi bi-file-earmark-pdf"></i> PDF
             </a>
         </div>
     </div>
 
-    <div th:if="${not report.isEmpty()}">
-        <div class="alert alert-info">
-            <strong>Всего позиций:</strong> <span th:text="${report.size()}">0</span>
-        </div>
+    <div th:if="${not report.isEmpty()}" class="alert alert-info">
+        <strong>Всего позиций:</strong> <span th:text="${report.size()}">0</span>
+        <span class="text-muted ms-3">
+            <small>«План» — норма по штату; «Приём» — новые сотрудники; «Замена» — износ.</small>
+        </span>
     </div>
 
     <div th:each="entry : ${groupedByType}">
@@ -40,27 +44,57 @@
                  th:classappend="${entry.key == 'SIZ'} ? 'bg-success text-white' : (${entry.key == 'TOOL'} ? 'bg-primary text-white' : 'bg-warning')">
                 <h4 class="mb-0">
                     <span th:text="${@tmcTypeService.getRussianName(entry.key)}">СИЗ</span>
-                    <span class="badge bg-light text-dark ms-2" th:text="${entry.value.size()} + ' позиций'">5</span>
+                    <span class="badge bg-light text-dark ms-2"
+                          th:text="${entry.value.size()} + ' позиций'">5</span>
                 </h4>
             </div>
-            <div class="card-body">
-                <table class="table table-striped table-hover">
+            <div class="card-body p-0">
+                <table class="table table-striped table-hover mb-0">
                     <thead>
                     <tr>
-                        <th>Код ТМЦ</th>
+                        <th>Код</th>
                         <th>Наименование</th>
-                        <th>Ед. изм.</th>
-                        <th class="text-end">Количество</th>
+                        <th>Ед.</th>
+                        <th class="text-end">План (норма)</th>
+                        <th class="text-end">Приём</th>
+                        <th class="text-end">Замена</th>
+                        <th class="text-end">Итого</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="item : ${entry.value}">
                         <td th:text="${item.tmcCode}">SIZ-001</td>
-                        <td th:text="${item.tmcName}">Костюм мужской х/б</td>
+                        <td th:text="${item.tmcName}">Костюм</td>
                         <td th:text="${item.unit}">компл</td>
-                        <td class="text-end fw-bold" th:text="${item.requiredQuantity}">10</td>
+                        <td class="text-end" th:text="${item.normBaseQuantity}">0</td>
+                        <td class="text-end"
+                            th:classappend="${item.hireQuantity > 0} ? 'text-success fw-bold' : 'text-muted'"
+                            th:text="${item.hireQuantity}">0
+                        </td>
+                        <td class="text-end"
+                            th:classappend="${item.replacementQuantity > 0} ? 'text-warning fw-bold' : 'text-muted'"
+                            th:text="${item.replacementQuantity}">0
+                        </td>
+                        <td class="text-end fw-bold" th:text="${item.totalQuantity}">0</td>
                     </tr>
                     </tbody>
+                    <tfoot class="table-light">
+                    <tr>
+                        <th colspan="3" class="text-end">Итого по группе:</th>
+                        <th class="text-end"
+                            th:text="${#aggregates.sum(entry.value.![normBaseQuantity])}">0
+                        </th>
+                        <th class="text-end text-success"
+                            th:text="${#aggregates.sum(entry.value.![hireQuantity])}">0
+                        </th>
+                        <th class="text-end text-warning"
+                            th:text="${#aggregates.sum(entry.value.![replacementQuantity])}">0
+                        </th>
+                        <th class="text-end"
+                            th:text="${#aggregates.sum(entry.value.![totalQuantity])}">0
+                        </th>
+                    </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -77,5 +111,6 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

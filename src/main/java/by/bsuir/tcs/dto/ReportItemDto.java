@@ -14,5 +14,8 @@ public class ReportItemDto {
     private String tmcName;
     private String tmcType;
     private String unit;
-    private Integer requiredQuantity;
+    private Integer normBaseQuantity;
+    private Integer hireQuantity;
+    private Integer replacementQuantity;
+    private Integer totalQuantity;
 }
