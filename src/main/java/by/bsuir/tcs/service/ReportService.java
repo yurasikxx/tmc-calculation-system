@@ -57,8 +57,7 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public Map<String, List<ReportItemDto>> groupByTmcType(Integer year, Integer month) {
-        List<ReportItemDto> items = getReportByPeriod(year, month);
-        return items.stream()
+        return getReportByPeriod(year, month).stream()
                 .collect(Collectors.groupingBy(
                         ReportItemDto::getTmcType,
                         LinkedHashMap::new,

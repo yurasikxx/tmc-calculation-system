@@ -51,7 +51,7 @@ public class PdfExportService {
 
                 String[] headers = {
                         "Код", "Наименование", "Ед.",
-                        "План", "Приём", "Замена*", "Итого"
+                        "План", "Приём", "Замена", "Итого"
                 };
                 Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD);
                 for (String h : headers) {
@@ -92,11 +92,6 @@ public class PdfExportService {
                 document.add(table);
                 document.add(Chunk.NEWLINE);
             }
-
-            Font noteFont = new Font(Font.HELVETICA, 8, Font.ITALIC, Color.GRAY);
-            document.add(new Paragraph(
-                    "* Замена — часть Плана (средний износ), показана для информации.",
-                    noteFont));
 
             document.close();
         } catch (DocumentException e) {

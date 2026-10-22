@@ -1,12 +1,6 @@
 package by.bsuir.tcs.service;
 
-import by.bsuir.tcs.entity.CalculationResult;
-import by.bsuir.tcs.entity.Employee;
-import by.bsuir.tcs.entity.IssuedItem;
-import by.bsuir.tcs.entity.Norm;
-import by.bsuir.tcs.entity.Profession;
-import by.bsuir.tcs.entity.StaffingPlan;
-import by.bsuir.tcs.entity.TmcItem;
+import by.bsuir.tcs.entity.*;
 import by.bsuir.tcs.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,12 +40,33 @@ public class CalculationService {
                         e -> e.getProfession().getId(),
                         Collectors.summingInt(e -> 1)));
 
-        Map<Long, Double> normBase = new HashMap<>();
+        Map<Long, Integer> openIssued = new HashMap<>();
+        for (IssuedItem ii : issuedItemRepository.findActiveByDate(end)) {
+            openIssued.merge(ii.getTmcItem().getId(), ii.getQuantity(), Integer::sum);
+        }
+
+        Map<Long, double[]> targets = new HashMap<>();
         for (Norm norm : normRepository.findAll()) {
             int cnt = employeesByProfession.getOrDefault(norm.getProfession().getId(), 0);
-            if (cnt > 0) {
-                double monthly = norm.getQuantity() * (double) cnt / norm.getPeriodMonths();
-                normBase.merge(norm.getTmcItem().getId(), monthly, Double::sum);
+            if (cnt == 0) continue;
+
+            double targetTotal = (double) norm.getQuantity() * cnt;
+            double[] arr = targets.computeIfAbsent(norm.getTmcItem().getId(),
+                    k -> new double[]{0, 0});
+            arr[0] += targetTotal;
+            arr[1] = Math.max(arr[1], norm.getPeriodMonths());
+        }
+
+        Map<Long, Double> normBase = new HashMap<>();
+        for (Map.Entry<Long, double[]> e : targets.entrySet()) {
+            Long tmcId = e.getKey();
+            double targetTotal = e.getValue()[0];
+            double periodMonths = e.getValue()[1] > 0 ? e.getValue()[1] : 12;
+
+            int open = openIssued.getOrDefault(tmcId, 0);
+            double missing = Math.max(0, targetTotal - open);
+            if (missing > 0) {
+                normBase.put(tmcId, missing / periodMonths);
             }
         }
 
@@ -61,14 +76,12 @@ public class CalculationService {
         for (StaffingPlan plan : plans) {
             Profession profession = getProfessionForHire(plan);
             if (profession == null) continue;
-
             for (Norm norm : normRepository.findByProfessionId(profession.getId())) {
                 hire.merge(norm.getTmcItem().getId(), norm.getQuantity(), Integer::sum);
             }
         }
 
-        List<IssuedItem> expiring = issuedItemRepository
-                .findExpiringBetween(start, end.plusDays(1));
+        List<IssuedItem> expiring = issuedItemRepository.findExpiringBetween(start, end.plusDays(1));
 
         Map<Long, Integer> replacement = expiring.stream()
                 .collect(Collectors.groupingBy(
@@ -87,7 +100,8 @@ public class CalculationService {
         };
     }
 
-    private void saveResultsDouble(Map<Long, Double> data, String source, Integer year, Integer month) {
+    private void saveResultsDouble(Map<Long, Double> data, String source,
+                                   Integer year, Integer month) {
         for (Map.Entry<Long, Double> e : data.entrySet()) {
             int qty = (int) Math.round(e.getValue());
             if (qty <= 0) continue;
@@ -95,7 +109,8 @@ public class CalculationService {
         }
     }
 
-    private void saveResultsInt(Map<Long, Integer> data, String source, Integer year, Integer month) {
+    private void saveResultsInt(Map<Long, Integer> data, String source,
+                                Integer year, Integer month) {
         for (Map.Entry<Long, Integer> e : data.entrySet()) {
             if (e.getValue() == null || e.getValue() <= 0) continue;
             saveResult(e.getKey(), e.getValue(), source, year, month);

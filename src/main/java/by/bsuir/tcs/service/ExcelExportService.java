@@ -29,7 +29,7 @@ public class ExcelExportService {
             Row headerRow = sheet.createRow(2);
             String[] headers = {
                     "Код ТМЦ", "Наименование", "Ед. изм.",
-                    "План (норма)", "Приём", "Замена*", "Итого"
+                    "План (норма)", "Приём", "Замена", "Итого"
             };
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
@@ -91,7 +91,6 @@ public class ExcelExportService {
 
             Row noteRow = sheet.createRow(rowNum + 1);
             Cell noteCell = noteRow.createCell(0);
-            noteCell.setCellValue("* Замена — часть Плана (средний износ), показана для информации.");
             CellStyle noteStyle = workbook.createCellStyle();
             Font noteFont = workbook.createFont();
             noteFont.setItalic(true);

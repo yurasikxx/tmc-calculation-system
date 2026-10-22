@@ -34,8 +34,13 @@
     <div th:if="${not report.isEmpty()}" class="alert alert-info">
         <strong>Всего позиций:</strong> <span th:text="${report.size()}">0</span>
         <span class="text-muted ms-3">
-            <small>«План» — норма по штату; «Приём» — новые сотрудники; «Замена» — износ.</small>
-        </span>
+        <small>
+            <strong>План</strong> — нехватка по норме (докупить),
+            <strong>Приём</strong> — новые сотрудники,
+            <strong>Замена</strong> — износ.
+            <strong>Итого</strong> = сумма трёх.
+        </small>
+    </span>
     </div>
 
     <div th:each="entry : ${groupedByType}">

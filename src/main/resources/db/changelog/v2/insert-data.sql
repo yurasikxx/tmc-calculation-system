@@ -980,23 +980,36 @@ DO $$
                 INSERT INTO calculation_results(
                     tmc_id, required_quantity, period_month, period_year, source)
                 SELECT
-                    n.tmc_id,
-                    GREATEST(1,
-                             ROUND(
-                                     SUM(n.quantity::numeric * cnt.cnt / n.period_months)
-                             )::int
-                    ),
+                    norm_data.tmc_id,
+                    GREATEST(1, ROUND(norm_data.missing_total / norm_data.period_months)::int),
                     m_month, m_year, 'NORM_BASE'
-                FROM norms n
-                         JOIN (
-                    SELECT profession_id, COUNT(*)::int AS cnt
-                    FROM employees
-                    WHERE hire_date <= m_end
-                      AND (termination_date IS NULL OR termination_date >= m_end)
-                    GROUP BY profession_id
-                ) cnt ON cnt.profession_id = n.profession_id
-                GROUP BY n.tmc_id
-                HAVING SUM(n.quantity::numeric * cnt.cnt / n.period_months) > 0
+                FROM (
+                     SELECT
+                         n.tmc_id,
+                         SUM(n.quantity::numeric * cnt.cnt) AS target_total,
+                         MAX(n.period_months) AS period_months,
+                         GREATEST(0,
+                                  SUM(n.quantity::numeric * cnt.cnt)
+                                      - COALESCE(open_items.qty, 0)
+                         ) AS missing_total
+                     FROM norms n
+                              JOIN (
+                         SELECT profession_id, COUNT(*)::int AS cnt
+                         FROM employees
+                         WHERE hire_date <= m_end
+                           AND (termination_date IS NULL OR termination_date >= m_end)
+                         GROUP BY profession_id
+                     ) cnt ON cnt.profession_id = n.profession_id
+                              LEFT JOIN (
+                         SELECT tmc_item_id, SUM(quantity)::int AS qty
+                         FROM issued_items
+                         WHERE status = 'ISSUED'
+                           AND expected_return_date >= m_end
+                         GROUP BY tmc_item_id
+                     ) open_items ON open_items.tmc_item_id = n.tmc_id
+                     GROUP BY n.tmc_id, open_items.qty
+                 ) norm_data
+                WHERE norm_data.missing_total > 0
                 ON CONFLICT (tmc_id, period_year, period_month, source) DO UPDATE
                     SET required_quantity = EXCLUDED.required_quantity;
 
