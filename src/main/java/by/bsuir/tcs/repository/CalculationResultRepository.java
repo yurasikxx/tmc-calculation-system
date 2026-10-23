@@ -25,13 +25,13 @@ public interface CalculationResultRepository extends JpaRepository<CalculationRe
     Optional<CalculationResult> findByPeriodYearAndPeriodMonthAndSourceAndTmcItemId(
             Integer year, Integer month, String source, Long tmcId);
 
+    List<CalculationResult> findTop10ByOrderByPeriodYearDescPeriodMonthDescCalculationDateDesc();
+
     @Modifying
     @Transactional
     @Query("DELETE FROM CalculationResult c WHERE c.periodYear = :year AND c.periodMonth = :month")
     void deleteByPeriodYearAndPeriodMonth(
             @Param("year") Integer year, @Param("month") Integer month);
-
-    List<CalculationResult> findTop5ByOrderByCalculationDateDesc();
 
     @Query("""
             SELECT c.periodYear, c.periodMonth, COUNT(c)

@@ -16,21 +16,12 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container mt-4">
-
-    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
-        <i class="bi bi-check-circle me-2"></i><span th:text="${success}">OK</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
-        <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}">Ошибка</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
     <div class="row justify-content-center">
         <div class="col-md-6">
             <h2>Выдача ТМЦ сотруднику</h2>
 
             <form th:action="@{/issued-items/issue}" method="post" class="needs-validation" novalidate>
+
                 <div class="mb-3">
                     <label for="employeeId" class="form-label">Сотрудник</label>
                     <select class="form-select" id="employeeId" name="employeeId" required>
@@ -45,11 +36,12 @@
                 <div class="mb-3">
                     <label for="tmcItemId" class="form-label">ТМЦ</label>
                     <select class="form-select" id="tmcItemId" name="tmcItemId" required>
-                        <option value="">Выберите ТМЦ</option>
-                        <option th:each="item : ${tmcItems}"
-                                th:value="${item.id}"
-                                th:text="${item.code + ' - ' + item.name}"></option>
+                        <option value="">Сначала выберите сотрудника</option>
                     </select>
+                    <div class="form-text">
+                        Показаны только ТМЦ, положенные по норме профессии
+                        и ещё не выданные этому сотруднику.
+                    </div>
                     <div class="invalid-feedback">Выберите ТМЦ</div>
                 </div>
 
@@ -66,7 +58,7 @@
                            th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" required>
                     <div class="form-text">
                         Дата окончания срока службы рассчитывается автоматически
-                        на основе срока службы ТМЦ.
+                        по сроку службы ТМЦ.
                     </div>
                 </div>
 
@@ -85,17 +77,59 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function () {
-        $('#employeeId').select2({
+        const $emp = $('#employeeId');
+        const $tmc = $('#tmcItemId');
+
+        $emp.select2({
             theme: 'bootstrap-5',
             placeholder: 'Начните вводить ФИО',
             allowClear: true
         });
-        $('#tmcItemId').select2({
+        $tmc.select2({
             theme: 'bootstrap-5',
-            placeholder: 'Начните вводить код или название',
+            placeholder: 'Выберите ТМЦ',
             allowClear: true
         });
+
+        function reloadTmc(employeeId) {
+            if (!employeeId) {
+                $tmc.empty().append('<option value="">Сначала выберите сотрудника</option>');
+                $tmc.trigger('change');
+                return;
+            }
+
+            $tmc.empty().append('<option value="">Загрузка…</option>');
+            $tmc.trigger('change');
+
+            fetch('/issued-items/available-tmc?employeeId=' + encodeURIComponent(employeeId))
+                .then(r => r.json())
+                .then(items => {
+                    $tmc.empty();
+                    $tmc.append('<option value="">Выберите ТМЦ</option>');
+                    if (items.length === 0) {
+                        $tmc.append('<option value="" disabled>Нет доступных ТМЦ по норме</option>');
+                    } else {
+                        items.forEach(i => {
+                            const opt = new Option(i.code + ' — ' + i.name, i.id);
+                            $tmc.append(opt);
+                        });
+                    }
+                    $tmc.trigger('change');
+                })
+                .catch(err => {
+                    console.error('Ошибка загрузки ТМЦ:', err);
+                    $tmc.empty().append('<option value="">Ошибка загрузки</option>');
+                    $tmc.trigger('change');
+                });
+        }
+
+        $emp.on('change', function () {
+            reloadTmc($(this).val());
+        });
+
+        reloadTmc($emp.val());
     });
+
     (() => {
         'use strict';
         document.querySelectorAll('.needs-validation').forEach(form => {

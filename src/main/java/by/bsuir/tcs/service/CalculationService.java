@@ -63,10 +63,22 @@ public class CalculationService {
             double targetTotal = e.getValue()[0];
             double periodMonths = e.getValue()[1] > 0 ? e.getValue()[1] : 12;
 
+            TmcItem tmc = tmcItemService.findById(tmcId);
+            Integer serviceLife = tmc.getServiceLifeMonths();
+            boolean isConsumable = serviceLife != null && serviceLife < 3;
+
             int open = openIssued.getOrDefault(tmcId, 0);
-            double missing = Math.max(0, targetTotal - open);
-            if (missing > 0) {
-                normBase.put(tmcId, missing / periodMonths);
+
+            double value;
+            if (isConsumable) {
+                value = targetTotal / periodMonths;
+            } else {
+                double missing = Math.max(0, targetTotal - open);
+                value = missing / periodMonths;
+            }
+
+            if (value > 0) {
+                normBase.put(tmcId, value);
             }
         }
 
@@ -84,6 +96,10 @@ public class CalculationService {
         List<IssuedItem> expiring = issuedItemRepository.findExpiringBetween(start, end.plusDays(1));
 
         Map<Long, Integer> replacement = expiring.stream()
+                .filter(ii -> {
+                    Integer sl = ii.getTmcItem().getServiceLifeMonths();
+                    return sl == null || sl >= 3;
+                })
                 .collect(Collectors.groupingBy(
                         i -> i.getTmcItem().getId(),
                         Collectors.summingInt(IssuedItem::getQuantity)));

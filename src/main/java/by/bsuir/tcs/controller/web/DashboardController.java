@@ -23,15 +23,16 @@ public class DashboardController {
     @GetMapping("/")
     public String dashboard(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser");
+        boolean isAuthenticated = auth != null && auth.isAuthenticated()
+                && !auth.getName().equals("anonymousUser");
 
         if (isAuthenticated) {
             DashboardStatsDto stats = dashboardService.getStats();
             List<RecentCalculationDto> recentCalculations = dashboardService.getRecentCalculations();
 
             List<Object[]> employeesByDept = dashboardService.getEmployeesByDepartment();
-            List<String> deptLabels = employeesByDept.stream().map(row -> (String) row[0]).collect(java.util.stream.Collectors.toList());
-            List<Number> deptData = employeesByDept.stream().map(row -> (Long) row[1]).collect(java.util.stream.Collectors.toList());
+            List<String> deptLabels = employeesByDept.stream().map(row -> (String) row[0]).toList();
+            List<Number> deptData = employeesByDept.stream().map(row -> (Number) row[1]).toList();
 
             List<Object[]> tmcByType = dashboardService.getTmcItemsByType();
             List<String> tmcLabels = tmcByType.stream()
@@ -43,15 +44,13 @@ public class DashboardController {
                             case "EQUIPMENT" -> "Оснастка";
                             default -> type;
                         };
-                    })
-                    .collect(java.util.stream.Collectors.toList());
-            List<Number> tmcData = tmcByType.stream().map(row -> (Long) row[1]).collect(java.util.stream.Collectors.toList());
+                    }).toList();
+            List<Number> tmcData = tmcByType.stream().map(row -> (Number) row[1]).toList();
 
             List<Object[]> calcByMonth = dashboardService.getCalculationsByMonth();
             List<String> calcLabels = calcByMonth.stream()
-                    .map(row -> row[1] + "/" + row[0])
-                    .collect(java.util.stream.Collectors.toList());
-            List<Number> calcData = calcByMonth.stream().map(row -> (Long) row[2]).collect(java.util.stream.Collectors.toList());
+                    .map(row -> row[1] + "/" + row[0]).toList();
+            List<Number> calcData = calcByMonth.stream().map(row -> (Number) row[2]).toList();
 
             String role = userService.getCurrentUserRoleName();
             model.addAttribute("stats", stats);
@@ -63,6 +62,14 @@ public class DashboardController {
             model.addAttribute("isOT", "ROLE_OT".equals(role));
             model.addAttribute("isTechnolog", "ROLE_TECHNOLOG".equals(role));
             model.addAttribute("isStorekeeper", "ROLE_STOREKEEPER".equals(role));
+
+            int[] lastPeriod = dashboardService.getLastPeriod();
+            if (lastPeriod != null) {
+                model.addAttribute("lastPeriodYear", lastPeriod[0]);
+                model.addAttribute("lastPeriodMonth", lastPeriod[1]);
+                model.addAttribute("lastPeriodMonthName",
+                        dashboardService.monthName(lastPeriod[1]));
+            }
 
             model.addAttribute("deptLabels", deptLabels);
             model.addAttribute("deptData", deptData);

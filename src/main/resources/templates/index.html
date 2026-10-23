@@ -152,17 +152,30 @@
         </div>
     </div>
 
-    <div class="row">
+    <div sec:authorize="hasAnyRole('MTS', 'ADMIN')" class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-clock-history me-2"></i>Последние расчёты</span>
-                    <span class="badge bg-secondary" th:text="${recentCalculations.size()} + ' записей'">0</span>
+                <div class="card-header bg-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span>
+                    <i class="bi bi-clock-history me-2"></i>Последние расчёты
+                    <th:block th:if="${lastPeriodYear != null}">
+                        — <strong th:text="${lastPeriodMonthName + ' ' + lastPeriodYear}">Ноябрь 2026</strong>
+                    </th:block>
+                </span>
+                    <div class="d-flex gap-2 align-items-center">
+                    <span class="badge bg-secondary"
+                          th:text="${recentCalculations.size()} + ' записей'">0</span>
+                        <a th:if="${lastPeriodYear != null}"
+                           th:href="@{/calculations/history(year=${lastPeriodYear}, month=${lastPeriodMonth})}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-arrow-right-circle"></i> Открыть полностью
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div th:if="${recentCalculations != null and !recentCalculations.isEmpty()}">
                         <div class="table-responsive">
-                            <table class="table table-sm table-hover">
+                            <table class="table table-sm table-hover mb-0">
                                 <thead>
                                 <tr>
                                     <th>Период</th>
@@ -174,11 +187,14 @@
                                 </thead>
                                 <tbody>
                                 <tr th:each="calc : ${recentCalculations}">
-                                    <td><span class="badge bg-secondary" th:text="${calc.period}">06/2026</span></td>
-                                    <td th:text="${calc.tmcCode}">SIZ-001</td>
-                                    <td th:text="${calc.tmcName}">Штангенциркуль</td>
+                                    <td>
+                                    <span class="badge bg-secondary"
+                                          th:text="${calc.period}">11/2026</span>
+                                    </td>
+                                    <td th:text="${calc.tmcCode}">С00000006</td>
+                                    <td th:text="${calc.tmcName}">Каска</td>
                                     <td class="text-end fw-bold" th:text="${calc.requiredQuantity}">5</td>
-                                    <td th:text="${calc.formattedDate}">10.08.2026 14:30</td>
+                                    <td th:text="${calc.formattedDate}">23.10.2026 08:16</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -188,8 +204,9 @@
                         <p class="text-muted mb-0">
                             <i class="bi bi-info-circle"></i> Расчётов пока нет.
                             <span sec:authorize="hasRole('MTS')">
-                                <a href="/staffing-plans/upload">Загрузите кадровый план</a> и выполните расчёт.
-                            </span>
+                            <a href="/staffing-plans/upload">Загрузите кадровый план</a>
+                            и выполните расчёт.
+                        </span>
                         </p>
                     </div>
                 </div>

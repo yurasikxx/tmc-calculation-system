@@ -17,36 +17,36 @@
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="bi bi-calculator me-2"></i>Расчёт потребности в ТМЦ</h4>
+                    <h4 class="mb-0">
+                        <i class="bi bi-calculator me-2"></i>Расчёт потребности в ТМЦ
+                    </h4>
                 </div>
                 <div class="card-body">
                     <p class="text-muted">
-                        Выберите период для расчёта потребности в ТМЦ на основе загруженного кадрового плана.
+                        Выберите период для расчёта потребности на основе загруженного кадрового плана.
                     </p>
 
                     <form th:action="@{/calculations/run}" method="post">
                         <div class="mb-3">
                             <label for="month" class="form-label">Месяц</label>
                             <select class="form-select" id="month" name="month" required>
-                                <option value="1">Январь</option>
-                                <option value="2">Февраль</option>
-                                <option value="3">Март</option>
-                                <option value="4">Апрель</option>
-                                <option value="5">Май</option>
-                                <option value="6" selected>Июнь</option>
-                                <option value="7">Июль</option>
-                                <option value="8">Август</option>
-                                <option value="9">Сентябрь</option>
-                                <option value="10">Октябрь</option>
-                                <option value="11">Ноябрь</option>
-                                <option value="12">Декабрь</option>
+                                <option th:each="m : ${months}"
+                                        th:value="${m.value}"
+                                        th:selected="${m.value == defaultMonth}"
+                                        th:text="${m.label}">Ноябрь
+                                </option>
                             </select>
                         </div>
 
                         <div class="mb-3">
                             <label for="year" class="form-label">Год</label>
-                            <input type="number" class="form-control" id="year" name="year" value="2026" min="2020"
-                                   max="2030" required>
+                            <select class="form-select" id="year" name="year" required>
+                                <option th:each="y : ${years}"
+                                        th:value="${y}"
+                                        th:selected="${y == defaultYear}"
+                                        th:text="${y}">2026
+                                </option>
+                            </select>
                         </div>
 
                         <div class="d-flex gap-2 flex-wrap">

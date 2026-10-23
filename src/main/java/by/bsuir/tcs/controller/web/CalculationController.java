@@ -15,8 +15,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.IntStream.rangeClosed;
 
 @Controller
 @RequestMapping("/calculations")
@@ -28,7 +31,21 @@ public class CalculationController {
     private final CalculationResultService calculationResultService;
 
     @GetMapping
-    public String form() {
+    public String form(Model model) {
+        LocalDate next = LocalDate.now().plusMonths(1).withDayOfMonth(1);
+
+        model.addAttribute("defaultMonth", next.getMonthValue());
+        model.addAttribute("defaultYear", next.getYear());
+        model.addAttribute("years",
+                rangeClosed(2020, 2030).boxed().toList());
+
+        List<Map<String, Object>> months = new java.util.ArrayList<>();
+        for (int m = 1; m <= 12; m++) {
+            months.add(Map.of("value", m, "label", monthName(m)));
+        }
+        model.addAttribute("months", months);
+        model.addAttribute("calcController", this);
+
         return "calculations/form";
     }
 
@@ -91,7 +108,7 @@ public class CalculationController {
         model.addAttribute("selectedYear", year);
         model.addAttribute("selectedMonth", month);
         model.addAttribute("selectedSource", source);
-        model.addAttribute("years", java.util.stream.IntStream.rangeClosed(2020, 2030).boxed().toList());
+        model.addAttribute("years", rangeClosed(2020, 2030).boxed().toList());
         model.addAttribute("sources", java.util.List.of("NORM_BASE", "HIRE", "REPLACEMENT"));
         model.addAttribute("calcController", this);
 

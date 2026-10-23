@@ -942,7 +942,7 @@ DO $$
                 FOR issued_rec IN
                     SELECT ii.*
                     FROM issued_items ii
-                    JOIN tmc_items t ON t.id = ii.tmc_item_id
+                             JOIN tmc_items t ON t.id = ii.tmc_item_id
                     WHERE ii.status = 'ISSUED'
                       AND ii.expected_return_date >= m_start
                       AND ii.expected_return_date <  m_end
@@ -968,48 +968,82 @@ DO $$
                         FROM tmc_items t WHERE t.id = issued_rec.tmc_item_id;
                     END LOOP;
 
-                UPDATE issued_items ii
-                SET expected_return_date = ii.expected_return_date
-                    + make_interval(months => COALESCE(t.service_life_months, 1))
-                FROM tmc_items t
-                WHERE t.id = ii.tmc_item_id
-                  AND ii.status = 'ISSUED'
-                  AND ii.expected_return_date < m_end
-                  AND COALESCE(t.service_life_months, 12) < 3;
+                FOR issued_rec IN
+                    SELECT ii.*
+                    FROM issued_items ii
+                             JOIN tmc_items t ON t.id = ii.tmc_item_id
+                    WHERE ii.status = 'ISSUED'
+                      AND ii.expected_return_date >= m_start
+                      AND ii.expected_return_date <  m_end
+                      AND COALESCE(t.service_life_months, 12) < 3
+                    LOOP
+                        UPDATE issued_items
+                        SET status = 'WRITTEN_OFF',
+                            actual_return_date = issued_rec.expected_return_date
+                        WHERE id = issued_rec.id;
+
+                        INSERT INTO issued_items(
+                            employee_id, tmc_item_id, norm_id, quantity,
+                            issue_date, expected_return_date, status)
+                        SELECT
+                            issued_rec.employee_id,
+                            issued_rec.tmc_item_id,
+                            issued_rec.norm_id,
+                            issued_rec.quantity,
+                            issued_rec.expected_return_date,
+                            issued_rec.expected_return_date + make_interval(months =>
+                                COALESCE(t.service_life_months, 1)),
+                            'ISSUED'
+                        FROM tmc_items t WHERE t.id = issued_rec.tmc_item_id;
+                    END LOOP;
 
                 INSERT INTO calculation_results(
                     tmc_id, required_quantity, period_month, period_year, source)
                 SELECT
                     norm_data.tmc_id,
-                    GREATEST(1, ROUND(norm_data.missing_total / norm_data.period_months)::int),
+                    GREATEST(1,
+                             ROUND(
+                                     CASE
+                                         WHEN norm_data.service_life_months < 3
+                                             THEN norm_data.target_total / norm_data.period_months
+                                         ELSE norm_data.missing_total / norm_data.period_months
+                                         END
+                             )::int
+                    ),
                     m_month, m_year, 'NORM_BASE'
                 FROM (
-                     SELECT
-                         n.tmc_id,
-                         SUM(n.quantity::numeric * cnt.cnt) AS target_total,
-                         MAX(n.period_months) AS period_months,
-                         GREATEST(0,
-                                  SUM(n.quantity::numeric * cnt.cnt)
-                                      - COALESCE(open_items.qty, 0)
-                         ) AS missing_total
-                     FROM norms n
-                              JOIN (
-                         SELECT profession_id, COUNT(*)::int AS cnt
-                         FROM employees
-                         WHERE hire_date <= m_end
-                           AND (termination_date IS NULL OR termination_date >= m_end)
-                         GROUP BY profession_id
-                     ) cnt ON cnt.profession_id = n.profession_id
-                              LEFT JOIN (
-                         SELECT tmc_item_id, SUM(quantity)::int AS qty
-                         FROM issued_items
-                         WHERE status = 'ISSUED'
-                           AND expected_return_date >= m_end
-                         GROUP BY tmc_item_id
-                     ) open_items ON open_items.tmc_item_id = n.tmc_id
-                     GROUP BY n.tmc_id, open_items.qty
-                 ) norm_data
-                WHERE norm_data.missing_total > 0
+                         SELECT
+                             n.tmc_id,
+                             t.service_life_months,
+                             SUM(n.quantity::numeric * cnt.cnt) AS target_total,
+                             MAX(n.period_months) AS period_months,
+                             GREATEST(0,
+                                      SUM(n.quantity::numeric * cnt.cnt)
+                                          - COALESCE(open_items.qty, 0)
+                             ) AS missing_total
+                         FROM norms n
+                                  JOIN tmc_items t ON t.id = n.tmc_id
+                                  JOIN (
+                             SELECT profession_id, COUNT(*)::int AS cnt
+                             FROM employees
+                             WHERE hire_date <= m_end
+                               AND (termination_date IS NULL OR termination_date >= m_end)
+                             GROUP BY profession_id
+                         ) cnt ON cnt.profession_id = n.profession_id
+                                  LEFT JOIN (
+                             SELECT tmc_item_id, SUM(quantity)::int AS qty
+                             FROM issued_items
+                             WHERE status = 'ISSUED'
+                               AND expected_return_date >= m_end
+                             GROUP BY tmc_item_id
+                         ) open_items ON open_items.tmc_item_id = n.tmc_id
+                         GROUP BY n.tmc_id, t.service_life_months, open_items.qty
+                     ) norm_data
+                WHERE (
+                          (norm_data.service_life_months < 3 AND norm_data.target_total > 0)
+                              OR
+                          (norm_data.service_life_months >= 3 AND norm_data.missing_total > 0)
+                          )
                 ON CONFLICT (tmc_id, period_year, period_month, source) DO UPDATE
                     SET required_quantity = EXCLUDED.required_quantity;
 
@@ -1034,9 +1068,11 @@ DO $$
                     SUM(ii.quantity)::int,
                     m_month, m_year, 'REPLACEMENT'
                 FROM issued_items ii
+                         JOIN tmc_items t ON t.id = ii.tmc_item_id
                 WHERE ii.expected_return_date >= m_start
                   AND ii.expected_return_date <  m_end
                   AND ii.actual_return_date = ii.expected_return_date
+                  AND COALESCE(t.service_life_months, 12) >= 3
                 GROUP BY ii.tmc_item_id
                 HAVING SUM(ii.quantity) > 0
                 ON CONFLICT (tmc_id, period_year, period_month, source) DO UPDATE
@@ -1045,6 +1081,6 @@ DO $$
             END LOOP;
     END $$;
 
-SELECT setval('staffing_plans_id_seq',      COALESCE((SELECT MAX(id) FROM staffing_plans), 1));
-SELECT setval('issued_items_id_seq',        COALESCE((SELECT MAX(id) FROM issued_items), 1));
-SELECT setval('calculation_results_id_seq', COALESCE((SELECT MAX(id) FROM calculation_results), 1));
+SELECT setval('staffing_plans_id_seq',     COALESCE((SELECT MAX(id) FROM staffing_plans), 1));
+SELECT setval('issued_items_id_seq',       COALESCE((SELECT MAX(id) FROM issued_items), 1));
+SELECT setval('calculation_results_id_seq',COALESCE((SELECT MAX(id) FROM calculation_results), 1));
