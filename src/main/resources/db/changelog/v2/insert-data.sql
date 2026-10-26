@@ -77,8 +77,7 @@ SELECT setval('user_roles_id_seq', (SELECT MAX(id) FROM user_roles));
 
 INSERT INTO tmc_types (id, name) VALUES
     (1, 'SIZ'),
-    (2, 'TOOL'),
-    (3, 'EQUIPMENT')
+    (2, 'TOOL')
 ON CONFLICT (id) DO NOTHING;
 
 SELECT setval('tmc_types_id_seq', (SELECT MAX(id) FROM tmc_types));
@@ -127,18 +126,7 @@ INSERT INTO tmc_items (code, name, type_id, unit_id, service_life_months) VALUES
     ('И00000010', 'Сверло спиральное 10мм', 2, (SELECT id FROM units WHERE code = 'шт'), 3),
     ('И00000011', 'Развертка 10мм', 2, (SELECT id FROM units WHERE code = 'шт'), 6),
     ('И00000012', 'Плашка М8', 2, (SELECT id FROM units WHERE code = 'шт'), 6),
-    ('И00000013', 'Метчик М8х1,25', 2, (SELECT id FROM units WHERE code = 'шт'), 6),
-
-    ('О00000001', 'Штамп гибочный №5', 3, (SELECT id FROM units WHERE code = 'шт'), 60),
-    ('О00000002', 'Кондуктор сверлильный', 3, (SELECT id FROM units WHERE code = 'шт'), 48),
-    ('О00000003', 'Кронштейн', 3, (SELECT id FROM units WHERE code = 'шт'), 36),
-    ('О00000004', 'Опора', 3, (SELECT id FROM units WHERE code = 'шт'), 36),
-    ('О00000005', 'Пластина', 3, (SELECT id FROM units WHERE code = 'шт'), 24),
-    ('О00000006', 'Клеть', 3, (SELECT id FROM units WHERE code = 'шт'), 60),
-    ('О00000007', 'Вилка', 3, (SELECT id FROM units WHERE code = 'шт'), 36),
-    ('О00000008', 'Корпус водила', 3, (SELECT id FROM units WHERE code = 'шт'), 60),
-    ('О00000009', 'Картер моста', 3, (SELECT id FROM units WHERE code = 'шт'), 60),
-    ('О00000010', 'Наконечник', 3, (SELECT id FROM units WHERE code = 'шт'), 24)
+    ('И00000013', 'Метчик М8х1,25', 2, (SELECT id FROM units WHERE code = 'шт'), 6)
 ON CONFLICT (code) DO NOTHING;
 
 SELECT setval('tmc_items_id_seq', (SELECT MAX(id) FROM tmc_items));
@@ -167,19 +155,6 @@ INSERT INTO tool_attributes (tmc_id, material, gost_number, measurement_range) V
     ((SELECT id FROM tmc_items WHERE code = 'И00000011'), 'Р6М5', 'ГОСТ 7722-77', NULL),
     ((SELECT id FROM tmc_items WHERE code = 'И00000012'), 'Р6М5', 'ГОСТ 9740-71', NULL),
     ((SELECT id FROM tmc_items WHERE code = 'И00000013'), 'Р6М5', 'ГОСТ 3266-81', NULL)
-ON CONFLICT (tmc_id) DO NOTHING;
-
-INSERT INTO equipment_attributes (tmc_id, drawing_number, max_cycles, machine_model) VALUES
-    ((SELECT id FROM tmc_items WHERE code = 'О00000001'), '1234-5678', 50000, 'КД-2320'),
-    ((SELECT id FROM tmc_items WHERE code = 'О00000002'), '8765-4321', 30000, '2С150'),
-    ((SELECT id FROM tmc_items WHERE code = 'О00000003'), '652511-8603181', 25000, NULL),
-    ((SELECT id FROM tmc_items WHERE code = 'О00000004'), '652511-8606270', 30000, NULL),
-    ((SELECT id FROM tmc_items WHERE code = 'О00000005'), '6515-8606330', 20000, NULL),
-    ((SELECT id FROM tmc_items WHERE code = 'О00000006'), '692375-9200010', 50000, NULL),
-    ((SELECT id FROM tmc_items WHERE code = 'О00000007'), '64221-1703497', 15000, NULL),
-    ((SELECT id FROM tmc_items WHERE code = 'О00000008'), '8007-2305030', 40000, NULL),
-    ((SELECT id FROM tmc_items WHERE code = 'О00000009'), '8007-2301012-10', 35000, NULL),
-    ((SELECT id FROM tmc_items WHERE code = 'О00000010'), '7930-3414077-10', 20000, NULL)
 ON CONFLICT (tmc_id) DO NOTHING;
 
 INSERT INTO norms (tmc_id, profession_id, quantity, period_months) VALUES

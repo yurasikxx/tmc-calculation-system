@@ -1,6 +1,9 @@
 package by.bsuir.tcs.controller.web;
 
-import by.bsuir.tcs.entity.*;
+import by.bsuir.tcs.entity.SizAttributes;
+import by.bsuir.tcs.entity.TmcItem;
+import by.bsuir.tcs.entity.TmcType;
+import by.bsuir.tcs.entity.ToolAttributes;
 import by.bsuir.tcs.service.TmcItemService;
 import by.bsuir.tcs.service.TmcTypeService;
 import by.bsuir.tcs.service.UnitService;
@@ -111,7 +114,6 @@ public class TmcItemController {
 
         model.addAttribute("sizAttributes", new SizAttributes());
         model.addAttribute("toolAttributes", new ToolAttributes());
-        model.addAttribute("equipmentAttributes", new EquipmentAttributes());
 
         return "tmc-items/form";
     }
@@ -125,9 +127,6 @@ public class TmcItemController {
             @RequestParam(required = false) String material,
             @RequestParam(required = false) String gostNumber,
             @RequestParam(required = false) String measurementRange,
-            @RequestParam(required = false) String drawingNumber,
-            @RequestParam(required = false) Integer maxCycles,
-            @RequestParam(required = false) String machineModel,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -149,12 +148,6 @@ public class TmcItemController {
                         .material(material)
                         .gostNumber(gostNumber)
                         .measurementRange(measurementRange)
-                        .build();
-            } else if ("EQUIPMENT".equals(type.getName())) {
-                attributes = EquipmentAttributes.builder()
-                        .drawingNumber(drawingNumber)
-                        .maxCycles(maxCycles)
-                        .machineModel(machineModel)
                         .build();
             }
 
@@ -187,11 +180,9 @@ public class TmcItemController {
 
         SizAttributes sizAttrs = tmcItemService.findSizAttributes(id);
         ToolAttributes toolAttrs = tmcItemService.findToolAttributes(id);
-        EquipmentAttributes equipAttrs = tmcItemService.findEquipmentAttributes(id);
 
         model.addAttribute("sizAttributes", sizAttrs != null ? sizAttrs : new SizAttributes());
         model.addAttribute("toolAttributes", toolAttrs != null ? toolAttrs : new ToolAttributes());
-        model.addAttribute("equipmentAttributes", equipAttrs != null ? equipAttrs : new EquipmentAttributes());
 
         return "tmc-items/form";
     }
@@ -206,9 +197,6 @@ public class TmcItemController {
             @RequestParam(required = false) String material,
             @RequestParam(required = false) String gostNumber,
             @RequestParam(required = false) String measurementRange,
-            @RequestParam(required = false) String drawingNumber,
-            @RequestParam(required = false) Integer maxCycles,
-            @RequestParam(required = false) String machineModel,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -230,12 +218,6 @@ public class TmcItemController {
                         .material(material)
                         .gostNumber(gostNumber)
                         .measurementRange(measurementRange)
-                        .build();
-            } else if ("EQUIPMENT".equals(type.getName())) {
-                attributes = EquipmentAttributes.builder()
-                        .drawingNumber(drawingNumber)
-                        .maxCycles(maxCycles)
-                        .machineModel(machineModel)
                         .build();
             }
 

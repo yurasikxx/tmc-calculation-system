@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS professions (
 
 CREATE TABLE IF NOT EXISTS tmc_types (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(20) NOT NULL UNIQUE CHECK (name IN ('SIZ', 'TOOL', 'EQUIPMENT')),
+    name VARCHAR(20) NOT NULL UNIQUE CHECK (name IN ('SIZ', 'TOOL')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -45,13 +45,6 @@ CREATE TABLE IF NOT EXISTS tool_attributes (
     material VARCHAR(100),
     gost_number VARCHAR(50),
     measurement_range VARCHAR(50)
-);
-
-CREATE TABLE IF NOT EXISTS equipment_attributes (
-    tmc_id INTEGER PRIMARY KEY REFERENCES tmc_items (id) ON DELETE CASCADE,
-    drawing_number VARCHAR(50),
-    max_cycles INTEGER,
-    machine_model VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS norms (

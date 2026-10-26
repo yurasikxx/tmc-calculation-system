@@ -92,25 +92,6 @@
                     </div>
                 </div>
 
-                <div id="equipmentAttrs" class="attribute-block mb-3" style="display: none;">
-                    <h5>Атрибуты оснастки</h5>
-                    <div class="mb-3">
-                        <label class="form-label">Номер чертежа</label>
-                        <input type="text" class="form-control" name="drawingNumber"
-                               th:value="${equipmentAttributes.drawingNumber}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Ресурс (циклов)</label>
-                        <input type="number" class="form-control" name="maxCycles"
-                               th:value="${equipmentAttributes.maxCycles}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Модель станка</label>
-                        <input type="text" class="form-control" name="machineModel"
-                               th:value="${equipmentAttributes.machineModel}">
-                    </div>
-                </div>
-
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-circle"></i> Сохранить
                 </button>
@@ -127,8 +108,7 @@
         const typeSelect = document.getElementById('typeSelect');
         const blocks = {
             SIZ: document.getElementById('sizAttrs'),
-            TOOL: document.getElementById('toolAttrs'),
-            EQUIPMENT: document.getElementById('equipmentAttrs')
+            TOOL: document.getElementById('toolAttrs')
         };
 
         function refreshBlocks() {

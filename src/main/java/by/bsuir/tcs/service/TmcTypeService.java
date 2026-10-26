@@ -40,10 +40,7 @@ public class TmcTypeService {
 
         return switch (role) {
             case "ROLE_OT" -> List.of(findByName("SIZ"));
-            case "ROLE_TECHNOLOG" -> List.of(
-                    findByName("TOOL"),
-                    findByName("EQUIPMENT")
-            );
+            case "ROLE_TECHNOLOG" -> List.of(findByName("TOOL"));
             case "ROLE_STOREKEEPER", "ROLE_ADMIN" -> findAll();
             default -> List.of();
         };
@@ -60,7 +57,6 @@ public class TmcTypeService {
         return switch (typeName) {
             case "SIZ" -> "СИЗ";
             case "TOOL" -> "Инструмент";
-            case "EQUIPMENT" -> "Оснастка";
             default -> typeName;
         };
     }

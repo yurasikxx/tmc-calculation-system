@@ -22,7 +22,6 @@ public class TmcItemService {
     private final UnitService unitService;
     private final SizAttributesRepository sizAttributesRepository;
     private final ToolAttributesRepository toolAttributesRepository;
-    private final EquipmentAttributesRepository equipmentAttributesRepository;
     private final TmcTypeService tmcTypeService;
 
     @Transactional(readOnly = true)
@@ -35,7 +34,6 @@ public class TmcItemService {
         String role = getCurrentUserRole();
         return switch (role) {
             case "ROLE_OT" -> tmcItemRepository.findByTypeName("SIZ", pageable);
-            case "ROLE_TECHNOLOG" -> tmcItemRepository.findByTypeName("EQUIPMENT", pageable);
             case "ROLE_STOREKEEPER" -> tmcItemRepository.findByTypeName("TOOL", pageable);
             case "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> tmcItemRepository.findAll(pageable);
             default -> Page.empty(pageable);
@@ -99,10 +97,6 @@ public class TmcItemService {
                     tool.setTmcItem(saved);
                     toolAttributesRepository.save(tool);
                 }
-                case EquipmentAttributes equipment when type.getName().equals("EQUIPMENT") -> {
-                    equipment.setTmcItem(saved);
-                    equipmentAttributesRepository.save(equipment);
-                }
                 default -> throw new RuntimeException("Invalid attribute type for TmcType: " + type.getName());
             }
         }
@@ -157,12 +151,6 @@ public class TmcItemService {
                     tool.setTmcItem(saved);
                     toolAttributesRepository.save(tool);
                 }
-                case EquipmentAttributes equipment when saved.getType().getName().equals("EQUIPMENT") -> {
-                    equipmentAttributesRepository.findById(saved.getId())
-                            .ifPresent(equipmentAttributesRepository::delete);
-                    equipment.setTmcItem(saved);
-                    equipmentAttributesRepository.save(equipment);
-                }
                 default ->
                         throw new RuntimeException("Invalid attribute type for TmcType: " + saved.getType().getName());
             }
@@ -185,7 +173,7 @@ public class TmcItemService {
 
         return switch (role) {
             case "ROLE_OT" -> "SIZ".equals(type);
-            case "ROLE_TECHNOLOG" -> "TOOL".equals(type) || "EQUIPMENT".equals(type);
+            case "ROLE_TECHNOLOG" -> "TOOL".equals(type);
             case "ROLE_STOREKEEPER", "ROLE_ADMIN" -> true;
             default -> false;
         };
@@ -199,11 +187,6 @@ public class TmcItemService {
     @Transactional(readOnly = true)
     public ToolAttributes findToolAttributes(Long tmcId) {
         return toolAttributesRepository.findById(tmcId).orElse(null);
-    }
-
-    @Transactional(readOnly = true)
-    public EquipmentAttributes findEquipmentAttributes(Long tmcId) {
-        return equipmentAttributesRepository.findById(tmcId).orElse(null);
     }
 
     @Transactional(readOnly = true)

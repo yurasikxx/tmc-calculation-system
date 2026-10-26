@@ -28,7 +28,7 @@ public class NormService {
         String role = getCurrentUserRole();
         return switch (role) {
             case "ROLE_OT" -> normRepository.findByTmcTypeNameIn(List.of("SIZ"), pageable);
-            case "ROLE_TECHNOLOG" -> normRepository.findByTmcTypeNameIn(List.of("TOOL", "EQUIPMENT"), pageable);
+            case "ROLE_TECHNOLOG" -> normRepository.findByTmcTypeNameIn(List.of("TOOL"), pageable);
             case "ROLE_STOREKEEPER", "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> normRepository.findAll(pageable);
             default -> Page.empty(pageable);
         };
@@ -66,8 +66,8 @@ public class NormService {
     public List<String> getAvailableTypeNames() {
         return switch (getCurrentUserRole()) {
             case "ROLE_OT" -> List.of("SIZ");
-            case "ROLE_TECHNOLOG" -> List.of("TOOL", "EQUIPMENT");
-            case "ROLE_STOREKEEPER", "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> List.of("SIZ", "TOOL", "EQUIPMENT");
+            case "ROLE_TECHNOLOG" -> List.of("TOOL");
+            case "ROLE_STOREKEEPER", "ROLE_ADMIN", "ROLE_LABOR", "ROLE_MTS" -> List.of("SIZ", "TOOL");
             default -> List.of();
         };
     }
