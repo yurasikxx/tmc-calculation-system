@@ -30,7 +30,21 @@ public class StaffingPlanService {
         List<StaffingPlan> savedPlans = new ArrayList<>();
         List<String> skipped = new ArrayList<>();
 
-        for (StaffingPlanRequest request : requests) {
+        for (int i = 0; i < requests.size(); i++) {
+            StaffingPlanRequest request = requests.get(i);
+
+            if (request.getFullName() == null || request.getFullName().isBlank()) {
+                throw new RuntimeException("ФИО не может быть пустым (строка " + (i + 1) + ")");
+            }
+            if (request.getActionType() == null ||
+                    !List.of("HIRE", "TRANSFER", "TERMINATE").contains(request.getActionType())) {
+                throw new RuntimeException("Некорректный тип действия: " + request.getActionType()
+                        + " (строка " + (i + 1) + ")");
+            }
+            if (request.getEffectiveDate() == null) {
+                throw new RuntimeException("Дата вступления не указана (строка " + (i + 1) + ")");
+            }
+
             if (!isProductionProfession(request.getProfessionName())) {
                 skipped.add(request.getFullName() + " (не производственная профессия: " + request.getProfessionName() + ")");
                 continue;

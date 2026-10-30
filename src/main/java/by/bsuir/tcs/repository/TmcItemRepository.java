@@ -20,6 +20,8 @@ public interface TmcItemRepository extends JpaRepository<TmcItem, Long> {
 
     List<TmcItem> findByTypeNameOrderByIdDesc(String typeName);
 
+    List<TmcItem> findByNameContainingIgnoreCase(String name);
+
     @Query("SELECT i FROM TmcItem i WHERE i.type.name = :typeName")
     Page<TmcItem> findByTypeName(@Param("typeName") String typeName, Pageable pageable);
 

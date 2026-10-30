@@ -115,10 +115,10 @@ public class NormService {
 
     @Transactional
     public Norm create(Norm norm) {
-        if (norm.getQuantity() <= 0) {
+        if (norm.getQuantity() == null || norm.getQuantity() <= 0) {
             throw new RuntimeException("Quantity must be positive");
         }
-        if (norm.getPeriodMonths() <= 0) {
+        if (norm.getPeriodMonths() == null || norm.getPeriodMonths() <= 0) {
             throw new RuntimeException("Period months must be positive");
         }
 
