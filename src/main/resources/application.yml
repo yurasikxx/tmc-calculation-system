@@ -18,4 +18,4 @@ spring:
 
 forecast:
   service:
-    url: http://localhost:5000
+    url: ${FORECAST_SERVICE_URL:http://localhost:5000}
